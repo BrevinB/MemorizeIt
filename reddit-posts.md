@@ -1,186 +1,276 @@
 # Reddit Release Posts for MemorizeIt
 
-## Post 1: r/iOSProgramming
+## Post 1: r/Bible
 
-**Title:** I built MemorizeIt - a flashcard app for iOS using SwiftUI. Feedback welcome!
+**Title:** I built MemorizeIt - an iOS app to help you memorize Scripture by typing it out
 
 **Body:**
-Hey everyone! After months of work, I'm excited to share MemorizeIt - a flashcard and memorization app I built using SwiftUI.
+Hey everyone! I built an app to help with Scripture memorization and wanted to share it with this community.
 
-**What it does:**
-- Create and organize flashcard decks for any subject
-- Spaced repetition algorithm to optimize your learning
-- Clean, native iOS interface that feels right at home on your iPhone or iPad
-- Track your progress and see your improvement over time
+**How it works:**
+Instead of just reading verses over and over, MemorizeIt has you type out the passage. As you type, the text gradually fades away, challenging you to recall more from memory. Combined with spaced repetition, it really helps lock verses into long-term memory.
 
-**Tech stack:**
-- 100% SwiftUI
-- iOS 17.5+
-- Universal app (iPhone & iPad)
+**Why typing works:**
+There's something powerful about engaging your hands while memorizing. It forces active recall rather than passive reading, and you can't fake it - you either know the verse or you don't.
 
-I'd love to hear your thoughts and feedback. What features would you like to see added?
+**Features:**
+- Add any Bible verse or passage
+- Type-over method with gradual text fading
+- Spaced repetition scheduling
+- Track your progress
+- Works offline
+
+I've been using it for my own Scripture memory and it's made a real difference. Would love your feedback!
 
 [App Store Link]
 
 ---
 
-## Post 2: r/GetStudying
+## Post 2: r/Christians
 
-**Title:** [Tool] Made a free flashcard app to help with memorization - MemorizeIt for iOS
+**Title:** Made a free app to help memorize Bible verses through typing - MemorizeIt
 
 **Body:**
-Hey fellow students!
+"I have hidden your word in my heart that I might not sin against you." - Psalm 119:11
 
-I struggled with memorizing vocab, formulas, and key concepts, so I built MemorizeIt to help myself study more effectively. Now I'm sharing it with everyone.
+Scripture memorization has been so important in my walk with Christ, but I always struggled with traditional methods. So I built MemorizeIt.
 
-**Features:**
-- Create unlimited flashcard decks
-- Spaced repetition to help you remember things long-term
-- Simple, distraction-free interface
-- Works offline - study anywhere
-- Progress tracking to keep you motivated
+**The approach:**
+You type out the verse repeatedly. Each time, more of the text fades away until you're typing it completely from memory. The app uses spaced repetition to bring verses back at the optimal time before you forget them.
 
-It's available now on the App Store for iOS. Would love to hear what you think and what features would help your studying!
+**Why I built it:**
+- Flashcards felt too passive for longer passages
+- I wanted something that forced true recall
+- Typing engages muscle memory alongside mental memory
+- I needed accountability and progress tracking
+
+It's free on iOS. Would love to hear how you approach Scripture memory and if this might help!
 
 ---
 
-## Post 3: r/Apple
+## Post 3: r/TrueChristian
 
-**Title:** Just released my first iOS app - MemorizeIt, a modern flashcard app built with SwiftUI
+**Title:** [Resource] MemorizeIt - iOS app for Scripture memorization using the type-over method
 
 **Body:**
-I've been learning iOS development and finally shipped my first app to the App Store!
+Wanted to share an app I made for memorizing Bible verses.
 
-MemorizeIt is a flashcard/memorization app designed with Apple's design principles in mind. It uses SwiftUI throughout and supports both iPhone and iPad.
+The concept is simple: you type the passage. As you practice, the text progressively disappears until you're recalling it entirely from memory. Spaced repetition brings verses back before you forget them.
 
-Key features:
-- Native iOS experience
-- iCloud sync across devices
-- Dark mode support
-- Widget support for quick review
-- No subscription required
+I found that typing engages my brain differently than reading or even writing by hand. There's no shortcut - you have to know it to type it.
 
-Building with SwiftUI was a great experience. Happy to answer any questions about the development process!
+Works great for:
+- Individual verses
+- Longer passages (Psalm 23, Romans 8, etc.)
+- Memory verse programs
+
+Free on the App Store for iPhone and iPad. No ads, no accounts required.
 
 ---
 
-## Post 4: r/productivity
+## Post 4: r/Poetry
 
-**Title:** I built MemorizeIt - a simple flashcard app to help you actually remember what you learn
+**Title:** I made an app for memorizing poems through typing - MemorizeIt for iOS
 
 **Body:**
-We consume so much information every day, but how much do we actually retain?
+There's something special about having a poem fully memorized - being able to recite it while walking, share it in conversation, or just let it run through your mind.
 
-I built MemorizeIt because I was frustrated with forgetting things I'd spent hours learning. The app uses spaced repetition - a scientifically-proven method to move information from short-term to long-term memory.
+I built MemorizeIt to make memorization more effective. Instead of reading a poem repeatedly and hoping it sticks, you type it out. The app progressively hides more text with each attempt, training true recall. Spaced repetition ensures you review poems at the right intervals.
 
-**How it works:**
-1. Create flashcards for what you want to remember
-2. The app schedules reviews at optimal intervals
-3. Cards you struggle with appear more frequently
-4. Cards you know well appear less often
+**Works great for:**
+- Short poems you want to carry with you
+- Longer works you're tackling piece by piece
+- Speeches and monologues
+- Song lyrics
+- Any text you want to internalize
 
-**Use cases:**
-- Language learning vocabulary
-- Medical/legal terminology
-- Historical dates and facts
-- Programming concepts
-- Really anything you need to memorize
+The typing method forces active engagement - you can't just skim past words. You have to produce each one.
 
-Available now for iOS. No accounts required, no subscriptions, just a simple tool that works.
+Free for iOS. Would love to hear what poems you're working on memorizing!
 
 ---
 
-## Post 5: r/learnprogramming
+## Post 5: r/PublicSpeaking
 
-**Title:** Made a flashcard app to help memorize programming concepts - MemorizeIt for iOS
+**Title:** Built an app to help memorize speeches by typing them out - MemorizeIt
 
 **Body:**
-Learning to code means remembering a lot: syntax, design patterns, algorithms, keyboard shortcuts, etc.
+Whether you're preparing a toast, a presentation without notes, or a competition speech, having your words truly memorized makes all the difference.
 
-I built MemorizeIt to help with this. It's a flashcard app with spaced repetition, so you can create decks for:
-- Language syntax and methods
-- Algorithm complexities
-- Design pattern definitions
-- Terminal/Git commands
-- Interview prep questions
+I built MemorizeIt with a typing-based approach:
+1. Add your speech or passage
+2. Type it out - the text is visible at first
+3. With each practice, more text fades away
+4. Eventually you're typing (and recalling) entirely from memory
+5. Spaced repetition brings it back before you forget
 
-The app is built with Swift and SwiftUI if anyone's curious about the technical side. Happy to share my experience building it!
+**Why typing works for speeches:**
+- Forces word-for-word recall (no paraphrasing)
+- Engages kinesthetic memory
+- You immediately know when you're stuck
+- Builds confidence through measurable progress
 
-Free on the iOS App Store.
+I've used it for wedding toasts, work presentations, and more. Free on iOS if you want to try it.
 
 ---
 
-## Post 6: r/languagelearning
+## Post 6: r/acting
 
-**Title:** [App] MemorizeIt - Free iOS flashcard app with spaced repetition for vocab learning
+**Title:** App for memorizing monologues/lines through typing - MemorizeIt
 
 **Body:**
-Hey language learners!
+Memorizing lines is a huge part of the craft, and I built an app that might help.
 
-Vocabulary acquisition is such a huge part of learning a new language, so I built MemorizeIt to make it easier.
+MemorizeIt uses a type-over method: you type your monologue or scene, and the text progressively disappears with each run-through. By the end, you're producing the words entirely from memory. Spaced repetition helps maintain lines you've already learned.
 
-**Features that help with language learning:**
-- Unlimited flashcard decks (one per language or topic)
-- Spaced repetition algorithm (similar to Anki)
-- Clean interface that doesn't get in your way
-- Offline support - perfect for studying on the go
-- Progress stats to keep you motivated
+**Why it might help actors:**
+- Word-perfect memorization (important for some productions)
+- Active recall vs. passive reading
+- Track which pieces you've mastered
+- Review scheduling so old monologues don't fade
 
-It's free on the App Store for iPhone and iPad. Would love feedback from the community on what would make it more useful for language learning specifically!
+Obviously nothing replaces rehearsal and embodying the character, but this can help with the raw memorization piece.
+
+Free on iOS. Would love feedback from anyone who tries it!
 
 ---
 
-## Post 7: r/medicalschool
+## Post 7: r/GetStudying
 
-**Title:** Built a free flashcard app for iOS - MemorizeIt (great for Anki refugees who want something simpler)
+**Title:** Made an app for memorizing longer texts (poems, speeches, passages) through typing
 
 **Body:**
-I know Anki is king in med school, but I wanted something simpler and more native-feeling on iOS.
+Flashcards are great for vocab and facts, but what about when you need to memorize a whole passage? A poem for literature class, a speech, a monologue, or religious texts?
 
-MemorizeIt is a flashcard app with spaced repetition that:
-- Has a clean, modern iOS interface
-- Works offline
-- Syncs across your Apple devices
-- Doesn't require a learning curve to use
+I built MemorizeIt for this. The method:
+1. Add any text you want to memorize
+2. Type it out while viewing the original
+3. Each practice, more of the text fades away
+4. Eventually you're typing from pure memory
+5. Spaced repetition schedules your reviews
 
-It's not as customizable as Anki, but if you want something straightforward that just works, give it a try.
+**Why typing beats reading:**
+- Active recall > passive review
+- You can't fake it - you know it or you don't
+- Engages muscle memory alongside mental memory
+- Measurable progress (did I get it right?)
 
-Free on the App Store. Let me know what features you'd need to make it work for your studies!
+Free on iOS. Great for Bible verses, poems, speeches, famous quotes, or any text you want to truly internalize.
+
+---
+
+## Post 8: r/iOSProgramming
+
+**Title:** Released MemorizeIt - a text memorization app using SwiftUI. Feedback welcome!
+
+**Body:**
+Just shipped my app MemorizeIt to the App Store. It helps users memorize longer texts (Bible verses, poems, speeches) through a type-over method with spaced repetition.
+
+**The concept:**
+Users type out passages they want to memorize. With each practice session, more of the original text fades away until they're recalling it entirely from memory. Spaced repetition schedules reviews at optimal intervals.
+
+**Tech stack:**
+- SwiftUI throughout
+- iOS 17.5+
+- iPhone and iPad support
+
+Would love any feedback on the concept or implementation. What would you add?
+
+---
+
+## Post 9: r/Catholicism or r/OrthodoxChristianity
+
+**Title:** Made an app for memorizing Scripture and prayers through typing - MemorizeIt
+
+**Body:**
+Scripture memorization and learning prayers by heart have been important parts of Christian tradition for centuries. I built an app to help with this practice.
+
+**How MemorizeIt works:**
+You type out the passage or prayer. With each repetition, the visible text fades more until you're recalling it entirely from memory. Spaced repetition ensures you review at the right intervals.
+
+**Good for:**
+- Bible verses and passages
+- Traditional prayers
+- Psalms
+- Catechism passages
+- Any sacred text
+
+The typing method forces true engagement with the words rather than passive reading. Free on iOS.
+
+---
+
+## Post 10: r/Debate or r/Forensics (Speech & Debate)
+
+**Title:** App for memorizing speeches/oratory pieces through typing - MemorizeIt
+
+**Body:**
+For anyone doing Original Oratory, Dramatic/Humorous Interp, or any memorized event:
+
+I built MemorizeIt to help with the memorization grind. You type your piece, and the text progressively disappears with each practice until you're producing it from memory. Spaced repetition keeps old pieces fresh.
+
+**Why it helps:**
+- Word-perfect recall (crucial for interp)
+- Know exactly where you're getting stuck
+- Track mastery of different sections
+- Maintain multiple pieces without one fading
+
+Free on iOS. Good luck at your next tournament!
 
 ---
 
 ## Tips for Posting
 
-1. **Timing:** Post during peak hours (9 AM - 12 PM EST for US-focused subs)
-2. **Engagement:** Reply to every comment in the first few hours
-3. **Authenticity:** Be genuine about being the developer
-4. **Feedback:** Actually implement suggestions users give you
-5. **Follow Rules:** Check each subreddit's self-promotion rules before posting
-6. **Flair:** Use appropriate flairs where required
-7. **Screenshots:** Include App Store screenshots or screen recordings when possible
+1. **Timing:** Post during peak hours (9 AM - 12 PM EST for US subs, evening for religious subs)
+2. **Engagement:** Reply to every comment authentically
+3. **Community First:** Participate in subreddits before promoting
+4. **Screenshots:** Include screenshots or a short video showing the typing/fading mechanic
+5. **Genuine Value:** Focus on helping, not selling
+6. **Follow Rules:** Many religious subreddits have strict self-promotion rules - check first
 
-## Subreddits to Consider
+## Target Subreddits by Category
 
-| Subreddit | Subscribers | Notes |
-|-----------|-------------|-------|
-| r/iOSProgramming | 100k+ | Dev-focused, good for technical discussion |
-| r/GetStudying | 500k+ | Students looking for study tools |
-| r/Apple | 4M+ | General Apple audience |
-| r/productivity | 2M+ | Productivity tool seekers |
-| r/learnprogramming | 4M+ | Devs learning to code |
-| r/languagelearning | 1M+ | Language learners |
-| r/medicalschool | 300k+ | Med students (heavy flashcard users) |
-| r/lawschool | 100k+ | Law students |
-| r/MCAT | 100k+ | Pre-med students |
-| r/GRE | 50k+ | Grad school test prep |
-| r/Anki | 100k+ | Flashcard enthusiasts |
-| r/apps | 50k+ | App discovery |
-| r/SideProject | 100k+ | Indie developers |
+### Bible/Religious
+| Subreddit | Notes |
+|-----------|-------|
+| r/Bible | Scripture focus |
+| r/Christians | General Christian community |
+| r/TrueChristian | Active Christian community |
+| r/Catholicism | Catholic community |
+| r/OrthodoxChristianity | Orthodox community |
+| r/Reformed | Reformed theology community |
+| r/biblememory | Small but directly relevant! |
+
+### Poetry/Literature
+| Subreddit | Notes |
+|-----------|-------|
+| r/Poetry | Poetry enthusiasts |
+| r/literature | Literary discussion |
+| r/books | General readers |
+
+### Speaking/Performance
+| Subreddit | Notes |
+|-----------|-------|
+| r/PublicSpeaking | Presentation skills |
+| r/acting | Actors memorizing lines |
+| r/Debate | Competitive speech & debate |
+| r/Forensics | Speech & debate community |
+| r/Theatre | Theater community |
+| r/Toastmasters | Public speaking organization |
+
+### Students/General
+| Subreddit | Notes |
+|-----------|-------|
+| r/GetStudying | Study tools |
+| r/productivity | Productivity seekers |
+| r/iOSProgramming | Dev community |
+| r/apple | Apple users |
+| r/SideProject | Indie devs |
 
 ## Cross-Posting Strategy
 
-1. Start with smaller, niche subreddits first
-2. Gather feedback and iterate
-3. Then post to larger subreddits with improved messaging
-4. Space out posts by a few days to avoid looking spammy
-5. Customize each post for the specific community
+1. **Start with niche communities** (r/biblememory, r/Forensics) - smaller but highly relevant
+2. **Religious subreddits** - often your most engaged users for Scripture memorization
+3. **Poetry/acting** - unique use case that differentiates from flashcard apps
+4. **General student/productivity** - broader reach
+5. **Space posts out** - 2-3 days between each to avoid looking spammy
+6. **Customize for each community** - never copy/paste the same post
