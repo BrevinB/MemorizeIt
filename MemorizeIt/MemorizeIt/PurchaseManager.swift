@@ -28,8 +28,8 @@ class PurchaseManager: NSObject, ObservableObject {
     // MARK: - Configuration
     private static let apiKey = "appl_OIRYkiZfDoEZDVnJfOoOrOBwqYp"
 
-    // Entitlement ID configured in RevenueCat
-    static let premiumEntitlement = "premium"
+    // Entitlement ID configured in RevenueCat (case-sensitive!)
+    static let premiumEntitlement = "Premium"
 
     // MARK: - Initialization
     private override init() {
@@ -112,14 +112,44 @@ class PurchaseManager: NSObject, ObservableObject {
 
         do {
             let result = try await Purchases.shared.purchase(package: package)
+
+            // Check if user cancelled during purchase flow
+            if result.userCancelled {
+                return false
+            }
+
             customerInfo = result.customerInfo
             isSubscribed = isPremium
 
+            // Debug: Log entitlements to help diagnose issues
+            print("Purchase completed. Active entitlements: \(result.customerInfo.entitlements.active.keys)")
+            print("Looking for entitlement: '\(Self.premiumEntitlement)'")
+            print("isPremium check result: \(isPremium)")
+
+            // If purchase succeeded (not cancelled, no error), treat as success
+            // The entitlement should be active - if not, it's likely a RevenueCat config issue
             if isPremium {
                 HapticManager.shared.notification(type: .success)
                 return true
+            } else {
+                // Purchase went through but entitlement not active
+                // This indicates a RevenueCat configuration issue
+                // Refresh customer info to try to get updated entitlements
+                print("Warning: Purchase succeeded but entitlement not active. Refreshing...")
+                await refreshCustomerInfo()
+
+                if isPremium {
+                    HapticManager.shared.notification(type: .success)
+                    return true
+                }
+
+                // Still no entitlement - likely a config issue, but purchase DID succeed
+                // Return true anyway since user was charged
+                print("Error: Purchase completed but 'premium' entitlement not found. Check RevenueCat configuration.")
+                errorMessage = "Purchase completed. If premium features aren't unlocked, please contact support."
+                HapticManager.shared.notification(type: .success)
+                return true
             }
-            return false
         } catch let error as ErrorCode {
             if error == .purchaseCancelledError {
                 // User cancelled - not an error
@@ -149,7 +179,7 @@ class PurchaseManager: NSObject, ObservableObject {
                 HapticManager.shared.notification(type: .success)
                 return true
             } else {
-                errorMessage = "No active subscription found"
+                errorMessage = "No active subscription found. If you recently purchased, please contact support."
                 return false
             }
         } catch {
