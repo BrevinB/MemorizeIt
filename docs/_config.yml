@@ -1,0 +1,16 @@
+# GitHub Pages Configuration for MemorizeIt
+
+title: MemorizeIt
+description: Scripture memorization made simple
+theme: jekyll-theme-minimal
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+
+# Exclude files from build
+exclude:
+  - README.md
+  - LICENSE
+  - Gemfile
+  - Gemfile.lock
