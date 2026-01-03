@@ -7,18 +7,63 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		235B6D022CAE4A6600437212 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 235B6D012CAE4A6600437212 /* HomeView.swift */; };
+		235B6D042CAE4B3100437212 /* CategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 235B6D032CAE4B3100437212 /* CategoryView.swift */; };
+		235B6D062CAE515800437212 /* AddNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 235B6D052CAE515800437212 /* AddNewItemView.swift */; };
 		2386EC1D2C3C5782003E7EFC /* MemorizeItApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2386EC1C2C3C5782003E7EFC /* MemorizeItApp.swift */; };
-		2386EC1F2C3C5782003E7EFC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2386EC1E2C3C5782003E7EFC /* ContentView.swift */; };
+		2386EC1F2C3C5782003E7EFC /* MemorizeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2386EC1E2C3C5782003E7EFC /* MemorizeView.swift */; };
 		2386EC212C3C5783003E7EFC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2386EC202C3C5783003E7EFC /* Assets.xcassets */; };
 		2386EC242C3C5783003E7EFC /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2386EC232C3C5783003E7EFC /* Preview Assets.xcassets */; };
+		23CC00012ED6000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23CC00002ED6000000000001 /* OnboardingView.swift */; };
+		23CC00032ED6000000000002 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23CC00022ED6000000000002 /* NotificationManager.swift */; };
+		23CC00052ED6000000000003 /* PurchaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23CC00042ED6000000000003 /* PurchaseManager.swift */; };
+		23CC00072ED6000000000004 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23CC00062ED6000000000004 /* PaywallView.swift */; };
+		23DA72DC2ED4C88F00759F34 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23DA72DB2ED4C88F00759F34 /* Theme.swift */; };
+		23DA72DF2ED4CA3200759F34 /* AnimatedComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23DA72DE2ED4CA3200759F34 /* AnimatedComponents.swift */; };
+		23DA72E22ED4CA3900759F34 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23DA72E12ED4CA3900759F34 /* EmptyStateView.swift */; };
+		23DA72E32ED4CA3900759F34 /* CompletionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23DA72E02ED4CA3900759F34 /* CompletionView.swift */; };
+		23DA72E62ED533BC00759F34 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23DA72E42ED533BC00759F34 /* Models.swift */; };
+		23DA72E72ED533BC00759F34 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23DA72E52ED533BC00759F34 /* StatsView.swift */; };
+		23DA72E92ED5376600759F34 /* BibleAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23DA72E82ED5376600759F34 /* BibleAPIService.swift */; };
+		23DA72EB2ED5417300759F34 /* APIBibleService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23DA72EA2ED5417300759F34 /* APIBibleService.swift */; };
+		23DA72ED2ED5507F00759F34 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23DA72EC2ED5507F00759F34 /* SettingsView.swift */; };
+		23FCD4882EDB76D30090A140 /* memorize.icon in Resources */ = {isa = PBXBuildFile; fileRef = 23FCD4872EDB76D30090A140 /* memorize.icon */; };
+		23FCD5AB2EDE8F060090A140 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 23FCD5AA2EDE8F060090A140 /* RevenueCat */; };
+		23IPAD0012EDD000000000001 /* RootNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23IPAD0002EDD000000000001 /* RootNavigationView.swift */; };
+		23IPAD0032EDD000000000002 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23IPAD0022EDD000000000002 /* SidebarView.swift */; };
+		23IPAD0052EDD000000000003 /* iPadDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23IPAD0042EDD000000000003 /* iPadDashboardView.swift */; };
+		23IPAD0072EDD000000000004 /* FavoritesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23IPAD0062EDD000000000004 /* FavoritesView.swift */; };
+		23REV00012EDF000000000001 /* ReviewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23REV00002EDF000000000001 /* ReviewManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		235B6D012CAE4A6600437212 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		235B6D032CAE4B3100437212 /* CategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryView.swift; sourceTree = "<group>"; };
+		235B6D052CAE515800437212 /* AddNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddNewItemView.swift; sourceTree = "<group>"; };
 		2386EC192C3C5782003E7EFC /* MemorizeIt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MemorizeIt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2386EC1C2C3C5782003E7EFC /* MemorizeItApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorizeItApp.swift; sourceTree = "<group>"; };
-		2386EC1E2C3C5782003E7EFC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		2386EC1E2C3C5782003E7EFC /* MemorizeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorizeView.swift; sourceTree = "<group>"; };
 		2386EC202C3C5783003E7EFC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2386EC232C3C5783003E7EFC /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		23CC00002ED6000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		23CC00022ED6000000000002 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		23CC00042ED6000000000003 /* PurchaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchaseManager.swift; sourceTree = "<group>"; };
+		23CC00062ED6000000000004 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		23DA72DB2ED4C88F00759F34 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		23DA72DE2ED4CA3200759F34 /* AnimatedComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedComponents.swift; sourceTree = "<group>"; };
+		23DA72E02ED4CA3900759F34 /* CompletionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletionView.swift; sourceTree = "<group>"; };
+		23DA72E12ED4CA3900759F34 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
+		23DA72E42ED533BC00759F34 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		23DA72E52ED533BC00759F34 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
+		23DA72E82ED5376600759F34 /* BibleAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BibleAPIService.swift; sourceTree = "<group>"; };
+		23DA72EA2ED5417300759F34 /* APIBibleService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIBibleService.swift; sourceTree = "<group>"; };
+		23DA72EC2ED5507F00759F34 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		23FCD4872EDB76D30090A140 /* memorize.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = memorize.icon; sourceTree = "<group>"; };
+		23IPAD0002EDD000000000001 /* RootNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootNavigationView.swift; sourceTree = "<group>"; };
+		23IPAD0022EDD000000000002 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		23IPAD0042EDD000000000003 /* iPadDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadDashboardView.swift; sourceTree = "<group>"; };
+		23IPAD0062EDD000000000004 /* FavoritesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesView.swift; sourceTree = "<group>"; };
+		23REV00002EDF000000000001 /* ReviewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -26,6 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				23FCD5AB2EDE8F060090A140 /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -51,8 +97,30 @@
 		2386EC1B2C3C5782003E7EFC /* MemorizeIt */ = {
 			isa = PBXGroup;
 			children = (
+				23FCD4872EDB76D30090A140 /* memorize.icon */,
+				23IPAD0002EDD000000000001 /* RootNavigationView.swift */,
+				23IPAD0022EDD000000000002 /* SidebarView.swift */,
+				23IPAD0042EDD000000000003 /* iPadDashboardView.swift */,
+				23IPAD0062EDD000000000004 /* FavoritesView.swift */,
+				23CC00042ED6000000000003 /* PurchaseManager.swift */,
+				23REV00002EDF000000000001 /* ReviewManager.swift */,
+				23CC00062ED6000000000004 /* PaywallView.swift */,
+				23CC00022ED6000000000002 /* NotificationManager.swift */,
+				23CC00002ED6000000000001 /* OnboardingView.swift */,
+				23DA72EC2ED5507F00759F34 /* SettingsView.swift */,
+				23DA72EA2ED5417300759F34 /* APIBibleService.swift */,
+				23DA72E82ED5376600759F34 /* BibleAPIService.swift */,
+				23DA72E42ED533BC00759F34 /* Models.swift */,
+				23DA72E52ED533BC00759F34 /* StatsView.swift */,
+				23DA72E02ED4CA3900759F34 /* CompletionView.swift */,
+				23DA72E12ED4CA3900759F34 /* EmptyStateView.swift */,
+				23DA72DE2ED4CA3200759F34 /* AnimatedComponents.swift */,
+				23DA72DB2ED4C88F00759F34 /* Theme.swift */,
 				2386EC1C2C3C5782003E7EFC /* MemorizeItApp.swift */,
-				2386EC1E2C3C5782003E7EFC /* ContentView.swift */,
+				2386EC1E2C3C5782003E7EFC /* MemorizeView.swift */,
+				235B6D012CAE4A6600437212 /* HomeView.swift */,
+				235B6D052CAE515800437212 /* AddNewItemView.swift */,
+				235B6D032CAE4B3100437212 /* CategoryView.swift */,
 				2386EC202C3C5783003E7EFC /* Assets.xcassets */,
 				2386EC222C3C5783003E7EFC /* Preview Content */,
 			);
@@ -111,6 +179,9 @@
 				Base,
 			);
 			mainGroup = 2386EC102C3C5782003E7EFC;
+			packageReferences = (
+				23FCD5A92EDE8F060090A140 /* XCRemoteSwiftPackageReference "purchases-ios" */,
+			);
 			productRefGroup = 2386EC1A2C3C5782003E7EFC /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -126,6 +197,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2386EC242C3C5783003E7EFC /* Preview Assets.xcassets in Resources */,
+				23FCD4882EDB76D30090A140 /* memorize.icon in Resources */,
 				2386EC212C3C5783003E7EFC /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -137,8 +209,29 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2386EC1F2C3C5782003E7EFC /* ContentView.swift in Sources */,
+				23IPAD0012EDD000000000001 /* RootNavigationView.swift in Sources */,
+				23IPAD0032EDD000000000002 /* SidebarView.swift in Sources */,
+				23IPAD0052EDD000000000003 /* iPadDashboardView.swift in Sources */,
+				23IPAD0072EDD000000000004 /* FavoritesView.swift in Sources */,
+				23CC00052ED6000000000003 /* PurchaseManager.swift in Sources */,
+				23REV00012EDF000000000001 /* ReviewManager.swift in Sources */,
+				23CC00072ED6000000000004 /* PaywallView.swift in Sources */,
+				23CC00032ED6000000000002 /* NotificationManager.swift in Sources */,
+				23CC00012ED6000000000001 /* OnboardingView.swift in Sources */,
+				23DA72ED2ED5507F00759F34 /* SettingsView.swift in Sources */,
+				23DA72E62ED533BC00759F34 /* Models.swift in Sources */,
+				23DA72E72ED533BC00759F34 /* StatsView.swift in Sources */,
+				2386EC1F2C3C5782003E7EFC /* MemorizeView.swift in Sources */,
+				23DA72EB2ED5417300759F34 /* APIBibleService.swift in Sources */,
+				235B6D022CAE4A6600437212 /* HomeView.swift in Sources */,
+				235B6D062CAE515800437212 /* AddNewItemView.swift in Sources */,
 				2386EC1D2C3C5782003E7EFC /* MemorizeItApp.swift in Sources */,
+				23DA72DF2ED4CA3200759F34 /* AnimatedComponents.swift in Sources */,
+				235B6D042CAE4B3100437212 /* CategoryView.swift in Sources */,
+				23DA72E92ED5376600759F34 /* BibleAPIService.swift in Sources */,
+				23DA72E22ED4CA3900759F34 /* EmptyStateView.swift in Sources */,
+				23DA72E32ED4CA3900759F34 /* CompletionView.swift in Sources */,
+				23DA72DC2ED4C88F00759F34 /* Theme.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -267,7 +360,7 @@
 		2386EC282C3C5783003E7EFC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = memorize;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -275,16 +368,19 @@
 				DEVELOPMENT_TEAM = YFXZ6WNN53;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = MemorizeIt;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.10;
 				PRODUCT_BUNDLE_IDENTIFIER = co.brevinb.MemorizeIt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -296,7 +392,7 @@
 		2386EC292C3C5783003E7EFC /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = memorize;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -304,16 +400,19 @@
 				DEVELOPMENT_TEAM = YFXZ6WNN53;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = MemorizeIt;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.10;
 				PRODUCT_BUNDLE_IDENTIFIER = co.brevinb.MemorizeIt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -344,6 +443,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		23FCD5A92EDE8F060090A140 /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.49.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		23FCD5AA2EDE8F060090A140 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 23FCD5A92EDE8F060090A140 /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCat;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 2386EC112C3C5782003E7EFC /* Project object */;
 }
