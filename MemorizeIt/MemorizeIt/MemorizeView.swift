@@ -394,7 +394,7 @@ struct TypingSettingsView: View {
                     Toggle(isOn: $settings.audioFeedback) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Sound Effects")
-                            Text("Play sounds for correct/incorrect typing")
+                            Text("Play sounds on errors and completion")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -430,30 +430,15 @@ class TypingAudioManager {
 
     private init() {}
 
-    func playCorrect() {
-        // Soft tap sound - like a gentle keyboard click
-        AudioServicesPlaySystemSound(1104)
-    }
-
     func playError() {
-        // Gentle "pop" sound - less harsh than the default error
-        AudioServicesPlaySystemSound(1519) // Soft haptic tap sound
+        // Gentle "pop" sound for errors
+        AudioServicesPlaySystemSound(1519)
     }
 
     func playComplete() {
         // Cheerful completion sound
-        AudioServicesPlaySystemSound(1407) // Payment success / cheerful ding
+        AudioServicesPlaySystemSound(1407)
     }
-
-    // Alternative sounds you can try:
-    // 1519 - Peek (soft pop)
-    // 1520 - Pop
-    // 1521 - Trill (gentle vibration sound)
-    // 1407 - Payment success
-    // 1306 - Anticipate / ready sound
-    // 1313 - Health unlock sound
-    // 1016 - Tweet sent sound
-    // 1111 - Begin recording (soft beep)
 }
 
 // MARK: - Typing View
@@ -942,11 +927,8 @@ struct TypingView: View {
         completedWords.append(currentWordInput)
         currentWordInput = ""
 
-        // Feedback
-        if isCorrect {
-            if settings.audioFeedback { audioManager.playCorrect() }
-            if settings.hapticFeedback { HapticManager.shared.impact(style: .light) }
-        } else {
+        // Feedback on errors only (iOS keyboard handles correct input feedback)
+        if !isCorrect {
             if settings.audioFeedback { audioManager.playError() }
             if settings.hapticFeedback { HapticManager.shared.notification(type: .error) }
             errorInfo = (expected: expectedWord, typed: completedWords.last ?? "")
@@ -1070,10 +1052,7 @@ struct TypingView: View {
 
                 let isCorrect = charactersMatch(normalizedNew[typedIndex], target[targetIndex])
 
-                if isCorrect {
-                    if settings.audioFeedback { audioManager.playCorrect() }
-                    if settings.hapticFeedback { HapticManager.shared.impact(style: .light) }
-                } else {
+                if !isCorrect {
                     if settings.audioFeedback { audioManager.playError() }
                     if settings.hapticFeedback { HapticManager.shared.notification(type: .error) }
                     errorInfo = (expected: String(target[targetIndex]), typed: String(normalizedNew[typedIndex]))

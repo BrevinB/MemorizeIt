@@ -10,6 +10,7 @@ import SwiftUI
 struct OnboardingView: View {
     @Binding var hasCompletedOnboarding: Bool
     @State private var currentPage = 0
+    @State private var showPaywall = false
 
     let pages: [OnboardingPage] = [
         OnboardingPage(
@@ -92,9 +93,18 @@ struct OnboardingView: View {
             .padding(.bottom, 32)
         }
         .background(Color(uiColor: .systemBackground))
+        .sheet(isPresented: $showPaywall, onDismiss: {
+            finishOnboarding()
+        }) {
+            PaywallView()
+        }
     }
 
     private func completeOnboarding() {
+        showPaywall = true
+    }
+
+    private func finishOnboarding() {
         withAnimation {
             hasCompletedOnboarding = true
         }
