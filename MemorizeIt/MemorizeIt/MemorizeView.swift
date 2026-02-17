@@ -6,6 +6,8 @@ import AudioToolbox
 enum DifficultyMode: String, CaseIterable {
     case fullText = "Full Text"
     case hiddenWords = "Hidden Words"
+    case firstLetterHints = "First Letter Hints"
+    case fillInTheBlank = "Fill in the Blank"
     case blankCanvas = "Blank Canvas"
 
     var description: String {
@@ -14,6 +16,10 @@ enum DifficultyMode: String, CaseIterable {
             return "See all words while typing"
         case .hiddenWords:
             return "Some words are hidden"
+        case .firstLetterHints:
+            return "Only first letters shown"
+        case .fillInTheBlank:
+            return "Fill in the missing words"
         case .blankCanvas:
             return "No hints shown"
         }
@@ -275,7 +281,7 @@ struct MemorizeView: View {
 
                             // Locked modes (show as disabled with lock)
                             if !purchaseManager.isPremium {
-                                ForEach([DifficultyMode.hiddenWords, .blankCanvas], id: \.self) { mode in
+                                ForEach([DifficultyMode.hiddenWords, .firstLetterHints, .fillInTheBlank, .blankCanvas], id: \.self) { mode in
                                     Button {
                                         showPaywall = true
                                     } label: {
@@ -464,6 +470,9 @@ struct TypingView: View {
     @State private var currentWordInput: String = ""
     @State private var completedWords: [String] = []
 
+    // For fill-in-the-blank mode
+    @State private var completedBlanks: [String] = []
+
     private let audioManager = TypingAudioManager.shared
 
     // MARK: - Text Processing
@@ -527,7 +536,84 @@ struct TypingView: View {
         return words[currentWordIndex]
     }
 
+    // MARK: - Fill-in-the-Blank Properties
+
+    /// Common stop words that remain visible in fill-in-the-blank mode
+    private static let stopWords: Set<String> = [
+        "a", "an", "the", "is", "are", "was", "were", "am", "be", "been",
+        "to", "of", "in", "on", "at", "by", "for", "and", "or", "but",
+        "not", "no", "if", "so", "it", "he", "she", "we", "as", "do",
+        "has", "had", "have", "his", "her", "my", "your", "our", "its",
+        "this", "that", "with", "from", "up", "out", "all", "will",
+        "can", "would", "could", "should", "may", "might", "shall"
+    ]
+
+    /// Indices of words selected as blanks in fill-in-the-blank mode
+    var blankWordIndices: Set<Int> {
+        let allWords = words
+        guard allWords.count > 1 else { return Set() }
+
+        var indices = Set<Int>()
+        var contentWordsSeen = 0
+
+        for (index, word) in allWords.enumerated() {
+            let cleanWord = word.lowercased().unicodeScalars
+                .filter { CharacterSet.letters.contains($0) }
+                .map { String($0) }.joined()
+
+            if !Self.stopWords.contains(cleanWord) && cleanWord.count > 2 {
+                contentWordsSeen += 1
+                if contentWordsSeen % 2 == 0 {
+                    indices.insert(index)
+                }
+            }
+        }
+
+        // Ensure at least some blanks exist
+        if indices.isEmpty && allWords.count > 2 {
+            for i in stride(from: 2, to: allWords.count, by: 3) {
+                indices.insert(i)
+            }
+        }
+
+        return indices
+    }
+
+    /// Blank indices in sorted order for sequential fill-in
+    var orderedBlankIndices: [Int] {
+        blankWordIndices.sorted()
+    }
+
+    /// Index into orderedBlankIndices for the current blank to fill
+    var currentBlankPosition: Int {
+        completedBlanks.count
+    }
+
+    /// Word index (in `words`) of the current blank to fill
+    var currentBlankWordIndex: Int? {
+        guard currentBlankPosition < orderedBlankIndices.count else { return nil }
+        return orderedBlankIndices[currentBlankPosition]
+    }
+
+    /// The expected word for the current blank
+    var currentExpectedBlankWord: String? {
+        guard let idx = currentBlankWordIndex, idx < words.count else { return nil }
+        return words[idx]
+    }
+
     var correctChars: Int {
+        if difficultyMode == .fillInTheBlank {
+            var count = 0
+            for (i, answer) in completedBlanks.enumerated() {
+                guard i < orderedBlankIndices.count else { break }
+                let expected = words[orderedBlankIndices[i]]
+                if wordsMatch(answer, expected) {
+                    count += expected.count
+                }
+            }
+            return count
+        }
+
         let typed = processedTypedText
         let target = processedMemorizationText
 
@@ -546,7 +632,13 @@ struct TypingView: View {
     }
 
     var totalChars: Int {
-        processedMemorizationText.count
+        if difficultyMode == .fillInTheBlank {
+            return orderedBlankIndices.reduce(0) { sum, idx in
+                guard idx < words.count else { return sum }
+                return sum + words[idx].count
+            }
+        }
+        return processedMemorizationText.count
     }
 
     var accuracy: Double {
@@ -555,6 +647,9 @@ struct TypingView: View {
     }
 
     var isComplete: Bool {
+        if difficultyMode == .fillInTheBlank {
+            return completedBlanks.count >= orderedBlankIndices.count
+        }
         if typingMode == .word {
             return completedWords.count >= words.count
         }
@@ -580,7 +675,9 @@ struct TypingView: View {
             }
 
             // Typing area based on mode
-            if typingMode == .word {
+            if difficultyMode == .fillInTheBlank {
+                fillInTheBlankTypingArea
+            } else if typingMode == .word {
                 wordModeTypingArea
             } else {
                 characterModeTypingArea
@@ -627,7 +724,12 @@ struct TypingView: View {
 
                     Spacer()
 
-                    if typingMode == .word {
+                    if difficultyMode == .fillInTheBlank {
+                        Text("\(completedBlanks.count) / \(orderedBlankIndices.count) blanks")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
+                    } else if typingMode == .word {
                         Text("\(completedWords.count) / \(words.count) words")
                             .font(.subheadline)
                             .fontWeight(.semibold)
@@ -735,7 +837,10 @@ struct TypingView: View {
     }
 
     var progressRatio: Double {
-        if typingMode == .word {
+        if difficultyMode == .fillInTheBlank {
+            guard orderedBlankIndices.count > 0 else { return 0 }
+            return Double(completedBlanks.count) / Double(orderedBlankIndices.count)
+        } else if typingMode == .word {
             guard words.count > 0 else { return 0 }
             return Double(completedWords.count) / Double(words.count)
         } else {
@@ -824,17 +929,23 @@ struct TypingView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
 
-                    if difficultyMode == .fullText {
+                    switch difficultyMode {
+                    case .fullText:
                         Text(expectedWord)
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
-                    } else if difficultyMode == .hiddenWords {
+                    case .hiddenWords:
                         Text(String(expectedWord.prefix(1)) + String(repeating: "_", count: max(0, expectedWord.count - 1)))
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
-                    } else {
+                    case .firstLetterHints:
+                        Text(String(expectedWord.prefix(1)))
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
+                    case .fillInTheBlank, .blankCanvas:
                         Text(String(repeating: "_", count: expectedWord.count))
                             .font(.title2)
                             .fontWeight(.semibold)
@@ -867,7 +978,23 @@ struct TypingView: View {
         let isCurrent = index == currentWordIndex
         let isCorrect = isCompleted && wordsMatch(completedWords[index], word)
 
-        return Text(isCompleted ? completedWords[index] : (difficultyMode == .fullText ? word : "???"))
+        let displayWord: String
+        if isCompleted {
+            displayWord = completedWords[index]
+        } else {
+            switch difficultyMode {
+            case .fullText:
+                displayWord = word
+            case .hiddenWords:
+                displayWord = String(word.prefix(1)) + String(repeating: "_", count: max(0, word.count - 1))
+            case .firstLetterHints:
+                displayWord = String(word.prefix(1))
+            case .fillInTheBlank, .blankCanvas:
+                displayWord = "???"
+            }
+        }
+
+        return Text(displayWord)
             .font(.subheadline)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
@@ -1078,7 +1205,11 @@ struct TypingView: View {
         let target = processedMemorizationText
         let currentPos = processedTypedText.count
 
-        if typingMode == .word {
+        if difficultyMode == .fillInTheBlank {
+            if let word = currentExpectedBlankWord {
+                hintText = word
+            }
+        } else if typingMode == .word {
             if let word = currentExpectedWord {
                 hintText = word
             }
@@ -1103,6 +1234,7 @@ struct TypingView: View {
     func resetTyping() {
         typedText = ""
         completedWords = []
+        completedBlanks = []
         currentWordInput = ""
         lastErrorIndex = nil
         showHint = false
@@ -1116,6 +1248,115 @@ struct TypingView: View {
         let prevIndex = text.index(text.startIndex, offsetBy: index - 1)
         let prevChar = text[prevIndex]
         return prevChar == " " || prevChar == "\n"
+    }
+
+    // MARK: - Fill-in-the-Blank Typing Area
+
+    var fillInTheBlankTypingArea: some View {
+        VStack(spacing: 16) {
+            // Display passage with blanks inline
+            ScrollView {
+                buildFillInBlankText()
+                    .font(.system(size: 18))
+                    .lineSpacing(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+            }
+
+            // Current blank input
+            if let expectedWord = currentExpectedBlankWord {
+                VStack(spacing: 8) {
+                    Text("Blank \(completedBlanks.count + 1) of \(orderedBlankIndices.count)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    TextField("Type the missing word...", text: $currentWordInput)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.title3)
+                        .multilineTextAlignment(.center)
+                        .autocorrectionDisabled(true)
+                        .textInputAutocapitalization(.never)
+                        .focused($isTextFieldFocused)
+                        .onSubmit {
+                            submitBlankWord()
+                        }
+                        .padding(.horizontal, 40)
+                }
+                .padding()
+                .background(Color(uiColor: .secondarySystemBackground))
+                .cornerRadius(12)
+                .padding(.horizontal)
+            }
+        }
+        .background(Color(uiColor: .secondarySystemBackground).opacity(0.5))
+    }
+
+    /// Build attributed text showing passage with blanks for fill-in-the-blank mode
+    func buildFillInBlankText() -> Text {
+        let allWords = words
+        var result = Text("")
+
+        for (index, word) in allWords.enumerated() {
+            if index > 0 {
+                result = result + Text(" ")
+            }
+
+            if blankWordIndices.contains(index) {
+                let blankPosition = orderedBlankIndices.firstIndex(of: index)!
+
+                if blankPosition < completedBlanks.count {
+                    // Already filled in
+                    let answer = completedBlanks[blankPosition]
+                    let isCorrect = wordsMatch(answer, word)
+                    result = result + Text(answer)
+                        .foregroundColor(isCorrect ? .green : .red)
+                        .fontWeight(.bold)
+                        .underline()
+                } else if blankPosition == completedBlanks.count {
+                    // Current blank - highlighted
+                    result = result + Text(String(repeating: "_", count: max(word.count, 3)))
+                        .foregroundColor(Theme.primary)
+                        .fontWeight(.bold)
+                } else {
+                    // Future blank
+                    result = result + Text(String(repeating: "_", count: max(word.count, 3)))
+                        .foregroundColor(.secondary.opacity(0.4))
+                }
+            } else {
+                // Visible word
+                result = result + Text(word)
+                    .foregroundColor(.primary)
+            }
+        }
+
+        return result
+    }
+
+    /// Submit the current blank word answer
+    func submitBlankWord() {
+        guard currentBlankWordIndex != nil,
+              let expectedWord = currentExpectedBlankWord else { return }
+
+        let isCorrect = wordsMatch(currentWordInput, expectedWord)
+        completedBlanks.append(currentWordInput)
+        currentWordInput = ""
+
+        if !isCorrect {
+            if settings.audioFeedback { audioManager.playError() }
+            if settings.hapticFeedback { HapticManager.shared.notification(type: .error) }
+            errorInfo = (expected: expectedWord, typed: completedBlanks.last ?? "")
+            lastErrorIndex = completedBlanks.count - 1
+        }
+
+        // Check completion
+        if completedBlanks.count >= orderedBlankIndices.count {
+            finalAccuracy = accuracy
+            isTextFieldFocused = false
+            showCompletionAlert = true
+            onComplete(accuracy, correctChars, totalChars)
+            if settings.audioFeedback { audioManager.playComplete() }
+            if settings.hapticFeedback { HapticManager.shared.notification(type: .success) }
+        }
     }
 
     // Build colored text with cursor indicator
@@ -1159,6 +1400,28 @@ struct TypingView: View {
                     } else {
                         resultText = resultText + Text("_")
                             .foregroundColor(.secondary.opacity(0.3))
+                    }
+
+                case .firstLetterHints:
+                    if correctChar == " " || correctChar == "\n" {
+                        resultText = resultText + Text(String(correctChar))
+                            .foregroundColor(.secondary)
+                    } else if isWordStart(at: index, in: target) {
+                        resultText = resultText + Text(String(correctChar))
+                            .foregroundColor(.secondary)
+                    } else {
+                        resultText = resultText + Text("·")
+                            .foregroundColor(.secondary.opacity(0.15))
+                    }
+
+                case .fillInTheBlank:
+                    // Fill-in-the-blank uses its own typing area, but handle here as fallback
+                    if correctChar == " " || correctChar == "\n" {
+                        resultText = resultText + Text(String(correctChar))
+                            .foregroundColor(.secondary)
+                    } else {
+                        resultText = resultText + Text("_")
+                            .foregroundColor(.secondary.opacity(0.2))
                     }
 
                 case .blankCanvas:
