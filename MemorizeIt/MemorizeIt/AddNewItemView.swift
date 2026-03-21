@@ -23,6 +23,8 @@ struct AddNewItemView: View {
 
     @Query private var allItems: [MemorizeItemModel]
 
+    var onItemAdded: ((MemorizeItemModel) -> Void)?
+
     @State private var addMode: AddMode = .search
     @State private var searchReference: String = ""
     @State private var title: String = ""
@@ -444,7 +446,8 @@ struct AddNewItemView: View {
             showPaywall = true
             return
         }
-        saveItem(translation: translation)
+        let newItem = saveItem(translation: translation)
+        onItemAdded?(newItem)
         dismiss()
     }
 
@@ -482,7 +485,8 @@ struct AddNewItemView: View {
         }
     }
 
-    private func saveItem(translation: String? = nil) {
+    @discardableResult
+    private func saveItem(translation: String? = nil) -> MemorizeItemModel {
         let newItem = MemorizeItemModel(
             title: title,
             categoryName: selectedCategory,
@@ -496,6 +500,8 @@ struct AddNewItemView: View {
         } catch {
             print("Error saving item: \(error)")
         }
+
+        return newItem
     }
 }
 
