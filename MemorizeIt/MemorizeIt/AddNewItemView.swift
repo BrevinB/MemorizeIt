@@ -458,7 +458,7 @@ struct AddNewItemView: View {
         apiBibleService.searchResults = nil
         apiBibleService.isRateLimited = false
 
-        // Always try API.Bible first for better translations
+        // Try Bolls Bible API first for accurate translations
         await apiBibleService.searchVerse(reference: searchReference, bibleId: bibleAPI.selectedTranslation.id)
 
         // If rate limited, fallback to free API

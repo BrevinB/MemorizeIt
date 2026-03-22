@@ -8,12 +8,12 @@
 import Foundation
 
 enum TranslationSource: Hashable {
-    case bibleDotCom  // Free API (bible-api.com)
-    case apiBible     // API.Bible (requires key)
+    case bolls         // Bolls Bible API (bolls.life)
+    case bibleDotCom   // Free API (bible-api.com) - fallback
 }
 
 struct BibleTranslation: Identifiable, Hashable {
-    let id: String
+    let id: String       // Bolls API abbreviation (e.g., "KJV", "NIV")
     let name: String
     let abbreviation: String
     let source: TranslationSource
@@ -21,13 +21,13 @@ struct BibleTranslation: Identifiable, Hashable {
 
     static let available = [
         // Free translations
-        BibleTranslation(id: "de4e12af7f28f599-02", name: "King James Version", abbreviation: "KJV", source: .apiBible, isFree: true),
-        BibleTranslation(id: "9879dbb7cfe39e4d-01", name: "New King James Version", abbreviation: "NKJV", source: .apiBible, isFree: true),
+        BibleTranslation(id: "KJV", name: "King James Version", abbreviation: "KJV", source: .bolls, isFree: true),
+        BibleTranslation(id: "NKJV", name: "New King James Version", abbreviation: "NKJV", source: .bolls, isFree: true),
         // Premium translations
-        BibleTranslation(id: "06125adad2d5898a-01", name: "New International Version", abbreviation: "NIV", source: .apiBible, isFree: false),
-        BibleTranslation(id: "65eec8e0b60e656b-01", name: "New American Standard Bible", abbreviation: "NASB", source: .apiBible, isFree: false),
-        BibleTranslation(id: "7142879509583d59-01", name: "New Living Translation", abbreviation: "NLT", source: .apiBible, isFree: false),
-        BibleTranslation(id: "c315fa9f71d4af3a-01", name: "The Message", abbreviation: "MSG", source: .apiBible, isFree: false)
+        BibleTranslation(id: "NIV", name: "New International Version", abbreviation: "NIV", source: .bolls, isFree: false),
+        BibleTranslation(id: "NASB", name: "New American Standard Bible", abbreviation: "NASB", source: .bolls, isFree: false),
+        BibleTranslation(id: "NLT", name: "New Living Translation", abbreviation: "NLT", source: .bolls, isFree: false),
+        BibleTranslation(id: "ESV", name: "English Standard Version", abbreviation: "ESV", source: .bolls, isFree: false)
     ]
 
     static var freeTranslations: [BibleTranslation] {
@@ -38,20 +38,22 @@ struct BibleTranslation: Identifiable, Hashable {
         available.filter { !$0.isFree }
     }
 
-    // Fallback translations for when API.Bible hits rate limits
+    // Fallback translations for bible-api.com when Bolls API is unavailable
     static let fallbackTranslations: [String: String] = [
         "KJV": "kjv",
         "NKJV": "kjv",
-        "MSG": "web"
+        "NIV": "web",
+        "NASB": "web",
+        "NLT": "web",
+        "ESV": "web"
     ]
 
     static func == (lhs: BibleTranslation, rhs: BibleTranslation) -> Bool {
-        lhs.id == rhs.id && lhs.source == rhs.source
+        lhs.id == rhs.id
     }
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
-        hasher.combine(abbreviation)
     }
 }
 
@@ -96,7 +98,7 @@ class BibleAPIService: ObservableObject {
            let savedTranslation = BibleTranslation.available.first(where: { $0.id == savedTranslationId }) {
             self.selectedTranslation = savedTranslation
         } else {
-            // Default to NIV (first in list)
+            // Default to KJV (first in list)
             self.selectedTranslation = .available[0]
         }
     }
