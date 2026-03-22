@@ -27,8 +27,13 @@ struct iPadDashboardView: View {
         GridItem(.adaptive(minimum: 300, maximum: 400), spacing: 16)
     ]
 
+    /// Newly added items that haven't been practiced yet, newest first
+    var newlyAddedItems: [MemorizeItemModel] {
+        allItems.filter { $0.practiceCount == 0 }
+    }
+
     var dueForReviewItems: [MemorizeItemModel] {
-        allItems.filter { $0.isDueForReview }
+        allItems.filter { $0.isDueForReview && $0.practiceCount > 0 }
             .sorted { $0.daysUntilReview < $1.daysUntilReview }
     }
 
@@ -55,10 +60,15 @@ struct iPadDashboardView: View {
                 // Stats Grid - Adaptive for iPad
                 statsSection
 
+                // Newly Added - items never practiced
+                if !newlyAddedItems.isEmpty {
+                    newlyAddedSection
+                }
+
                 // Due for Review - Grid layout for iPad
                 if !dueForReviewItems.isEmpty {
                     dueForReviewSection
-                } else if !allItems.isEmpty {
+                } else if !allItems.isEmpty && newlyAddedItems.isEmpty {
                     allCaughtUpSection
                 }
 
@@ -128,6 +138,31 @@ struct iPadDashboardView: View {
         .padding()
         .background(Color.green.opacity(0.1))
         .cornerRadius(16)
+    }
+
+    private var newlyAddedSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Image(systemName: "sparkles")
+                    .foregroundColor(.orange)
+                Text("Newly Added")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                Spacer()
+                Text("\(newlyAddedItems.count) items")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+
+            LazyVGrid(columns: recentColumns, spacing: 16) {
+                ForEach(newlyAddedItems.prefix(8)) { item in
+                    NavigationLink(destination: MemorizeView(item: item)) {
+                        MemorizeItemModelRow(item: item)
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                }
+            }
+        }
     }
 
     private var dueForReviewSection: some View {

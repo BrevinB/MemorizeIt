@@ -28,6 +28,11 @@ struct HomeView: View {
         allItems.filter { $0.isFavorite }
     }
 
+    /// Newly added items that haven't been practiced yet, newest first
+    var newlyAddedItems: [MemorizeItemModel] {
+        allItems.filter { $0.practiceCount == 0 }
+    }
+
     var recentItems: [MemorizeItemModel] {
         allItems.filter { $0.lastPracticedAt != nil }
             .sorted { ($0.lastPracticedAt ?? Date.distantPast) > ($1.lastPracticedAt ?? Date.distantPast) }
@@ -35,9 +40,9 @@ struct HomeView: View {
             .map { $0 }
     }
 
-    /// Items due for review based on spaced repetition algorithm
+    /// Items due for review based on spaced repetition algorithm (excludes never-practiced items)
     var dueForReviewItems: [MemorizeItemModel] {
-        allItems.filter { $0.isDueForReview }
+        allItems.filter { $0.isDueForReview && $0.practiceCount > 0 }
             .sorted { item1, item2 in
                 // Sort by most overdue first, then by last practiced
                 let days1 = item1.daysUntilReview
@@ -191,6 +196,42 @@ struct HomeView: View {
                                     .padding(.horizontal)
                                 }
                             }
+                        }
+                    }
+
+                    // Newly Added Section - items never practiced, newest first
+                    if !newlyAddedItems.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Image(systemName: "sparkles")
+                                    .foregroundColor(.orange)
+                                Text("Newly Added")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+
+                                Spacer()
+
+                                Text("\(newlyAddedItems.count)")
+                                    .font(.caption)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.orange)
+                                    .cornerRadius(12)
+                            }
+                            .padding(.horizontal)
+
+                            VStack(spacing: 12) {
+                                ForEach(Array(newlyAddedItems.prefix(5).enumerated()), id: \.element.id) { index, item in
+                                    NavigationLink(destination: MemorizeView(item: item)) {
+                                        MemorizeItemModelRow(item: item)
+                                    }
+                                    .buttonStyle(ScaleButtonStyle())
+                                    .cardAppear(delay: 0.2 + Double(index) * 0.1)
+                                }
+                            }
+                            .padding(.horizontal)
                         }
                     }
 
