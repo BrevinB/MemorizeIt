@@ -21,6 +21,8 @@ struct HomeView: View {
     @State private var Categories: [Category] = [.init(title: "Bible Verses"), .init(title: "Poems"), .init(title: "Speeches")]
     @State private var showAddNewMemorizeItem: Bool = false
     @State private var showSettings: Bool = false
+    @State private var navigationPath = NavigationPath()
+    @State private var itemToNavigate: MemorizeItemModel?
 
     var favoriteItems: [MemorizeItemModel] {
         allItems.filter { $0.isFavorite }
@@ -58,7 +60,7 @@ struct HomeView: View {
     }
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ScrollView {
                 VStack(spacing: 24) {
                     // Header
@@ -355,8 +357,18 @@ struct HomeView: View {
                     .buttonStyle(BounceButtonStyle())
                 }
             }
-            .sheet(isPresented: $showAddNewMemorizeItem) {
-                AddNewItemView()
+            .navigationDestination(for: MemorizeItemModel.self) { item in
+                MemorizeView(item: item)
+            }
+            .sheet(isPresented: $showAddNewMemorizeItem, onDismiss: {
+                if let item = itemToNavigate {
+                    itemToNavigate = nil
+                    navigationPath.append(item)
+                }
+            }) {
+                AddNewItemView(onItemAdded: { newItem in
+                    itemToNavigate = newItem
+                })
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()

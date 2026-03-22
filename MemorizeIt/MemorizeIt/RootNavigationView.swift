@@ -50,6 +50,8 @@ struct RootNavigationView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var selectedSidebarItem: SidebarItem? = .dashboard
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @State private var navigateToNewItem: MemorizeItemModel?
+    @State private var detailPath = NavigationPath()
 
     var body: some View {
         if horizontalSizeClass == .regular {
@@ -63,19 +65,34 @@ struct RootNavigationView: View {
 
     private var iPadNavigationView: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            SidebarView(selection: $selectedSidebarItem)
+            SidebarView(selection: $selectedSidebarItem, onItemAdded: { newItem in
+                navigateToNewItem = newItem
+            })
         } detail: {
             detailContent
         }
         .navigationSplitViewStyle(.balanced)
+        .onChange(of: navigateToNewItem) { _, newItem in
+            if let item = newItem {
+                navigateToNewItem = nil
+                selectedSidebarItem = .dashboard
+                // Delay to allow the detail view to rebuild after sidebar selection change
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    detailPath.append(item)
+                }
+            }
+        }
     }
 
     @ViewBuilder
     private var detailContent: some View {
         switch selectedSidebarItem {
         case .dashboard:
-            NavigationStack {
+            NavigationStack(path: $detailPath) {
                 iPadDashboardView()
+                    .navigationDestination(for: MemorizeItemModel.self) { item in
+                        MemorizeView(item: item)
+                    }
             }
         case .bibleVerses:
             NavigationStack {

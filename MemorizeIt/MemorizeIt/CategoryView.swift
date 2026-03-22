@@ -36,6 +36,8 @@ struct CategoryView: View {
     @State private var showDeleteConfirmation: Bool = false
     @State private var itemToDelete: MemorizeItemModel?
     @State private var showAddNewItem: Bool = false
+    @State private var pendingNewItem: MemorizeItemModel?
+    @State private var navigateToNewItem: MemorizeItemModel?
 
     var categoryItems: [MemorizeItemModel] {
         allItems.filter { $0.categoryName == selectedCategory }
@@ -230,8 +232,18 @@ struct CategoryView: View {
         .sheet(item: $itemToEdit) { item in
             EditItemView(item: item)
         }
-        .sheet(isPresented: $showAddNewItem) {
-            AddNewItemView()
+        .navigationDestination(item: $navigateToNewItem) { item in
+            MemorizeView(item: item)
+        }
+        .sheet(isPresented: $showAddNewItem, onDismiss: {
+            if let item = pendingNewItem {
+                pendingNewItem = nil
+                navigateToNewItem = item
+            }
+        }) {
+            AddNewItemView(onItemAdded: { newItem in
+                pendingNewItem = newItem
+            })
         }
         .alert("Delete Item", isPresented: $showDeleteConfirmation) {
             Button("Cancel", role: .cancel) {

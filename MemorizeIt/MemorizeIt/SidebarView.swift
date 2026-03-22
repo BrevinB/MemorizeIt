@@ -14,6 +14,8 @@ struct SidebarView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var allItems: [MemorizeItemModel]
     @State private var showAddNewItem = false
+    @State private var pendingNewItem: MemorizeItemModel?
+    var onItemAdded: ((MemorizeItemModel) -> Void)?
 
     private var dueCount: Int {
         allItems.filter { $0.isDueForReview }.count
@@ -138,15 +140,22 @@ struct SidebarView: View {
                 }
             }
         }
-        .sheet(isPresented: $showAddNewItem) {
-            AddNewItemView()
+        .sheet(isPresented: $showAddNewItem, onDismiss: {
+            if let item = pendingNewItem {
+                pendingNewItem = nil
+                onItemAdded?(item)
+            }
+        }) {
+            AddNewItemView(onItemAdded: { newItem in
+                pendingNewItem = newItem
+            })
         }
     }
 }
 
 #Preview {
     NavigationSplitView {
-        SidebarView(selection: .constant(.dashboard))
+        SidebarView(selection: .constant(.dashboard), onItemAdded: nil)
     } detail: {
         Text("Detail")
     }
