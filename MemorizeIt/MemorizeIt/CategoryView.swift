@@ -28,7 +28,7 @@ struct CategoryView: View {
     var selectedCategory: String
     @Environment(\.modelContext) private var modelContext
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @Query private var allItems: [MemorizeItemModel]
+    @Query(sort: \MemorizeItemModel.createdAt, order: .reverse) private var allItems: [MemorizeItemModel]
 
     @State private var searchText: String = ""
     @State private var selectedFilter: ProgressFilter = .all
