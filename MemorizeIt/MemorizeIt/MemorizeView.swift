@@ -6,6 +6,8 @@ import AudioToolbox
 enum DifficultyMode: String, CaseIterable {
     case fullText = "Full Text"
     case hiddenWords = "Hidden Words"
+    case firstLetter = "First Letter"
+    case fillInTheBlank = "Fill in the Blank"
     case blankCanvas = "Blank Canvas"
 
     var description: String {
@@ -13,7 +15,11 @@ enum DifficultyMode: String, CaseIterable {
         case .fullText:
             return "See all words while typing"
         case .hiddenWords:
-            return "Some words are hidden"
+            return "First letter + word length shown"
+        case .firstLetter:
+            return "Only first letters are visible"
+        case .fillInTheBlank:
+            return "Key words are hidden; type only those"
         case .blankCanvas:
             return "No hints shown"
         }
@@ -273,9 +279,12 @@ struct MemorizeView: View {
                                 }
                             }
 
-                            // Locked modes (show as disabled with lock)
+                            // Locked modes (show as disabled with lock icon)
                             if !purchaseManager.isPremium {
-                                ForEach([DifficultyMode.hiddenWords, .blankCanvas], id: \.self) { mode in
+                                ForEach(
+                                    DifficultyMode.allCases.filter { $0 != .fullText },
+                                    id: \.self
+                                ) { mode in
                                     Button {
                                         showPaywall = true
                                     } label: {
@@ -824,17 +833,32 @@ struct TypingView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
 
-                    if difficultyMode == .fullText {
+                    switch difficultyMode {
+                    case .fullText:
                         Text(expectedWord)
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
-                    } else if difficultyMode == .hiddenWords {
+                    case .hiddenWords:
+                        // Show first letter + underscores to reveal word length
                         Text(String(expectedWord.prefix(1)) + String(repeating: "_", count: max(0, expectedWord.count - 1)))
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
-                    } else {
+                    case .firstLetter:
+                        // Show only the first letter – no length hint
+                        Text(String(expectedWord.prefix(1)))
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
+                    case .fillInTheBlank:
+                        // Key words are blanked; non-key words are auto-advanced
+                        // so by the time we reach here the word is always a key word.
+                        Text(String(repeating: "_", count: expectedWord.count))
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary)
+                    case .blankCanvas:
                         Text(String(repeating: "_", count: expectedWord.count))
                             .font(.title2)
                             .fontWeight(.semibold)
@@ -860,6 +884,13 @@ struct TypingView: View {
             }
         }
         .background(Color(uiColor: .secondarySystemBackground).opacity(0.5))
+        .onAppear {
+            // Auto-advance leading non-key words when entering Fill-in-the-Blank mode
+            advanceNonKeyWordsIfNeeded()
+        }
+        .onChange(of: difficultyMode) { _, _ in
+            advanceNonKeyWordsIfNeeded()
+        }
     }
 
     func wordBubble(word: String, index: Int) -> some View {
@@ -867,7 +898,28 @@ struct TypingView: View {
         let isCurrent = index == currentWordIndex
         let isCorrect = isCompleted && wordsMatch(completedWords[index], word)
 
-        return Text(isCompleted ? completedWords[index] : (difficultyMode == .fullText ? word : "???"))
+        let displayText: String
+        if isCompleted {
+            displayText = completedWords[index]
+        } else {
+            switch difficultyMode {
+            case .fullText:
+                displayText = word
+            case .hiddenWords:
+                // First letter + underscores to reveal word length
+                displayText = String(word.prefix(1)) + String(repeating: "_", count: max(0, word.count - 1))
+            case .firstLetter:
+                // Only the first letter – no length information
+                displayText = String(word.prefix(1))
+            case .fillInTheBlank:
+                // Non-key words show their text (context aid); key words are blanked
+                displayText = isKeyWord(word) ? String(repeating: "_", count: word.count) : word
+            case .blankCanvas:
+                displayText = String(repeating: "_", count: word.count)
+            }
+        }
+
+        return Text(displayText)
             .font(.subheadline)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
@@ -926,6 +978,10 @@ struct TypingView: View {
 
         completedWords.append(currentWordInput)
         currentWordInput = ""
+
+        // In Fill-in-the-Blank mode skip over non-key words automatically so
+        // the user only has to type the meaningful vocabulary.
+        advanceNonKeyWordsIfNeeded()
 
         // Feedback on errors only (iOS keyboard handles correct input feedback)
         if !isCorrect {
@@ -1108,6 +1164,60 @@ struct TypingView: View {
         showHint = false
         previousTypedCount = 0
         isTextFieldFocused = true
+        // Immediately skip non-key words so FITB word mode starts on a key word
+        advanceNonKeyWordsIfNeeded()
+    }
+
+    // Returns true if the word is a "key word" that should be hidden in Fill-in-the-Blank mode.
+    // Words with more than 4 characters (after stripping punctuation) are considered key words.
+    func isKeyWord(_ word: String) -> Bool {
+        let clean = word.unicodeScalars
+            .filter { !punctuationCharacters.contains($0) }
+            .map { String($0) }
+            .joined()
+        return clean.count > 4
+    }
+
+    // Returns an array where each index corresponds to a character in `target` and
+    // indicates whether that character belongs to a key word (true) or not (false).
+    // Space/newline characters are always false.
+    func buildKeyWordMask(for target: String) -> [Bool] {
+        var mask = Array(repeating: false, count: target.count)
+        var wordStartIdx: Int? = nil
+
+        for (i, char) in target.enumerated() {
+            if char == " " || char == "\n" {
+                if let start = wordStartIdx {
+                    let startStrIdx = target.index(target.startIndex, offsetBy: start)
+                    let endStrIdx = target.index(target.startIndex, offsetBy: i)
+                    let word = String(target[startStrIdx..<endStrIdx])
+                    if isKeyWord(word) {
+                        for j in start..<i { mask[j] = true }
+                    }
+                    wordStartIdx = nil
+                }
+            } else if wordStartIdx == nil {
+                wordStartIdx = i
+            }
+        }
+        // Handle the last word in the string
+        if let start = wordStartIdx {
+            let startStrIdx = target.index(target.startIndex, offsetBy: start)
+            let word = String(target[startStrIdx...])
+            if isKeyWord(word) {
+                for j in start..<target.count { mask[j] = true }
+            }
+        }
+        return mask
+    }
+
+    // In Fill-in-the-Blank word mode, automatically accept all non-key words so
+    // the user only has to type the meaningful vocabulary words.
+    func advanceNonKeyWordsIfNeeded() {
+        guard difficultyMode == .fillInTheBlank else { return }
+        while currentWordIndex < words.count && !isKeyWord(words[currentWordIndex]) {
+            completedWords.append(words[currentWordIndex])
+        }
     }
 
     // Helper to check if a character is at the start of a word
@@ -1123,6 +1233,12 @@ struct TypingView: View {
         var resultText = Text("")
         let typed = processedTypedText
         let target = processedMemorizationText
+
+        // Precompute keyword mask once for Fill-in-the-Blank so we don't repeat
+        // the word-scanning work inside the per-character loop.
+        let keyWordMask: [Bool] = difficultyMode == .fillInTheBlank
+            ? buildKeyWordMask(for: target)
+            : []
 
         for index in 0..<target.count {
             let targetIndex = target.index(target.startIndex, offsetBy: index)
@@ -1159,6 +1275,38 @@ struct TypingView: View {
                     } else {
                         resultText = resultText + Text("_")
                             .foregroundColor(.secondary.opacity(0.3))
+                    }
+
+                case .firstLetter:
+                    // Show spaces and newlines so paragraph structure is clear.
+                    // Show only the first letter of each word; replace the
+                    // remaining characters with a faint middle-dot so that
+                    // word length is NOT revealed (harder than hiddenWords).
+                    if correctChar == " " || correctChar == "\n" {
+                        resultText = resultText + Text(String(correctChar))
+                            .foregroundColor(.secondary.opacity(0.4))
+                    } else if isWordStart(at: index, in: target) {
+                        resultText = resultText + Text(String(correctChar))
+                            .foregroundColor(.secondary)
+                    } else {
+                        resultText = resultText + Text("·")
+                            .foregroundColor(.secondary.opacity(0.12))
+                    }
+
+                case .fillInTheBlank:
+                    // Spaces and newlines are always visible so the surrounding
+                    // context reads naturally.
+                    if correctChar == " " || correctChar == "\n" {
+                        resultText = resultText + Text(String(correctChar))
+                            .foregroundColor(.secondary)
+                    } else if keyWordMask[index] {
+                        // Key word character – replace with an underscore
+                        resultText = resultText + Text("_")
+                            .foregroundColor(.secondary.opacity(0.35))
+                    } else {
+                        // Non-key word character – show faded, like Full Text
+                        resultText = resultText + Text(String(correctChar))
+                            .foregroundColor(.secondary)
                     }
 
                 case .blankCanvas:
