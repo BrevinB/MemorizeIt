@@ -52,7 +52,8 @@ class NotificationManager: ObservableObject {
     /// - Parameters:
     ///   - time: The time of day to send the reminder
     ///   - dueCount: Number of items due for review (shown in notification)
-    func scheduleDailyReminder(at time: Date, dueCount: Int = 0) async {
+    ///   - currentStreak: Active day-streak count, used to personalize copy
+    func scheduleDailyReminder(at time: Date, dueCount: Int = 0, currentStreak: Int = 0) async {
         // First, remove any existing daily reminder
         cancelDailyReminder()
 
@@ -64,13 +65,9 @@ class NotificationManager: ObservableObject {
 
         // Create notification content
         let content = UNMutableNotificationContent()
-        content.title = "Time to Practice!"
-
-        if dueCount > 0 {
-            content.body = "You have \(dueCount) verse\(dueCount == 1 ? "" : "s") due for review. Keep your streak going!"
-        } else {
-            content.body = "Take a few minutes to practice your verses and strengthen your memory."
-        }
+        let (title, body) = Self.reminderCopy(dueCount: dueCount, currentStreak: currentStreak)
+        content.title = title
+        content.body = body
 
         content.sound = .default
         content.badge = dueCount > 0 ? NSNumber(value: dueCount) : nil
@@ -130,7 +127,6 @@ class NotificationManager: ObservableObject {
         "A little practice each day goes a long way. Let's review!",
         "Your verses are waiting! Keep building that muscle memory.",
         "Consistency is key. Time for a quick practice session!",
-        "Don't break your streak! A few minutes of practice makes a difference.",
         "Your future self will thank you for practicing today.",
         "Small daily efforts lead to big results. Let's go!",
         "Ready to strengthen your memory? Your verses await!"
@@ -139,6 +135,36 @@ class NotificationManager: ObservableObject {
     /// Get a random motivational message
     static func randomMotivationalMessage() -> String {
         motivationalMessages.randomElement() ?? motivationalMessages[0]
+    }
+
+    /// Build personalized (title, body) reminder copy based on streak and review queue.
+    /// Streak-protection copy outperforms generic motivation.
+    static func reminderCopy(dueCount: Int, currentStreak: Int) -> (String, String) {
+        // 1. Active streak at risk – highest priority, highest conversion.
+        if currentStreak >= 2 {
+            let title = "Your \(currentStreak)-day streak is at risk 🔥"
+            let body: String
+            if dueCount > 0 {
+                body = "Just \(dueCount) verse\(dueCount == 1 ? "" : "s") to keep your streak alive today."
+            } else {
+                body = "A 1-minute session today keeps your streak going strong."
+            }
+            return (title, body)
+        }
+
+        // 2. First-day streak – nudge them to come back tomorrow.
+        if currentStreak == 1 {
+            return ("Start your streak today",
+                    "Practice today to begin a 2-day streak. Small wins compound.")
+        }
+
+        // 3. No active streak – use queue if available, else motivational fallback.
+        if dueCount > 0 {
+            return ("Verses ready for review",
+                    "You have \(dueCount) verse\(dueCount == 1 ? "" : "s") due. A few minutes is all it takes.")
+        }
+
+        return ("Time to Practice", randomMotivationalMessage())
     }
 }
 

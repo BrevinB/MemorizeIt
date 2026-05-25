@@ -178,6 +178,28 @@ struct SettingsView: View {
                     Text("Practice Settings")
                 }
 
+                // Categories Section
+                Section {
+                    NavigationLink {
+                        ManageCategoriesView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "folder.fill")
+                                .foregroundColor(Theme.primary)
+                                .frame(width: 30)
+                            Text("Manage Categories")
+                            Spacer()
+                            Text("\(CategoryStore.shared.allCategories.count)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                } header: {
+                    Text("Organization")
+                } footer: {
+                    Text("Create custom categories like \"Marriage\", \"Parenting\", or \"Sermon Notes\" to organize your library.")
+                }
+
                 // Notifications Section
                 Section {
                     Toggle(isOn: $notificationsEnabled) {
@@ -273,7 +295,7 @@ struct SettingsView: View {
                             .frame(width: 30)
                         Text("Version")
                         Spacer()
-                        Text("1.0.0")
+                        Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—")
                             .foregroundColor(.secondary)
                     }
 
@@ -496,10 +518,12 @@ struct SettingsView: View {
     }
 
     private func scheduleNotification() {
+        let streak = appStats.first?.currentStreak ?? 0
         Task {
             await notificationManager.scheduleDailyReminder(
                 at: dailyReminderTime,
-                dueCount: dueForReviewCount
+                dueCount: dueForReviewCount,
+                currentStreak: streak
             )
         }
     }
@@ -858,4 +882,117 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
+}
+
+// MARK: - Manage Categories View
+
+struct ManageCategoriesView: View {
+    @Environment(\.modelContext) private var modelContext
+    @StateObject private var categoryStore = CategoryStore.shared
+    @Query private var allItems: [MemorizeItemModel]
+
+    @State private var newCategoryName: String = ""
+    @State private var addError: String?
+    @State private var deleteCandidate: String?
+    @State private var showDeleteBlockedAlert: Bool = false
+    @State private var deleteBlockedMessage: String = ""
+
+    private func itemCount(for name: String) -> Int {
+        allItems.filter { $0.categoryName == name }.count
+    }
+
+    var body: some View {
+        Form {
+            Section {
+                HStack {
+                    TextField("New category name", text: $newCategoryName)
+                        .textInputAutocapitalization(.words)
+                        .autocorrectionDisabled()
+                        .onSubmit(addCategory)
+
+                    Button("Add", action: addCategory)
+                        .disabled(newCategoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .buttonStyle(.borderedProminent)
+                }
+            } header: {
+                Text("Add Category")
+            } footer: {
+                if let addError {
+                    Text(addError).foregroundColor(.red)
+                }
+            }
+
+            Section {
+                ForEach(CategoryStore.builtInCategories, id: \.self) { name in
+                    categoryRow(name: name, canDelete: false)
+                }
+            } header: {
+                Text("Built-in")
+            }
+
+            if !categoryStore.customCategories.isEmpty {
+                Section {
+                    ForEach(categoryStore.customCategories, id: \.self) { name in
+                        categoryRow(name: name, canDelete: true)
+                    }
+                } header: {
+                    Text("Custom")
+                } footer: {
+                    Text("Swipe to delete. A category can only be deleted when no items use it.")
+                }
+            }
+        }
+        .navigationTitle("Categories")
+        .navigationBarTitleDisplayMode(.inline)
+        .alert("Can't Delete Category", isPresented: $showDeleteBlockedAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(deleteBlockedMessage)
+        }
+    }
+
+    private func categoryRow(name: String, canDelete: Bool) -> some View {
+        HStack {
+            Image(systemName: Theme.categoryIcon(for: name))
+                .foregroundColor(Theme.categoryColor(for: name))
+                .frame(width: 30)
+            Text(name)
+            Spacer()
+            Text("\(itemCount(for: name))")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            if canDelete {
+                Button(role: .destructive) {
+                    attemptDelete(name)
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
+        }
+    }
+
+    private func addCategory() {
+        let trimmed = newCategoryName.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let error = categoryStore.add(trimmed) {
+            addError = error
+        } else {
+            addError = nil
+            newCategoryName = ""
+            HapticManager.shared.notification(type: .success)
+        }
+    }
+
+    private func attemptDelete(_ name: String) {
+        let count = itemCount(for: name)
+        if count > 0 {
+            deleteBlockedMessage = "\(name) has \(count) item\(count == 1 ? "" : "s"). Move or delete them first."
+            showDeleteBlockedAlert = true
+            HapticManager.shared.notification(type: .warning)
+        } else {
+            categoryStore.remove(name)
+            HapticManager.shared.notification(type: .success)
+        }
+    }
 }

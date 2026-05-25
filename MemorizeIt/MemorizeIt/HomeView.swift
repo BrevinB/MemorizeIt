@@ -17,8 +17,12 @@ struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \MemorizeItemModel.createdAt, order: .reverse) private var allItems: [MemorizeItemModel]
     @Query private var appStats: [AppStats]
+    @StateObject private var categoryStore = CategoryStore.shared
 
-    @State private var Categories: [Category] = [.init(title: "Bible Verses"), .init(title: "Poems"), .init(title: "Speeches")]
+    private var Categories: [Category] {
+        categoryStore.allCategories.map { Category(title: $0) }
+    }
+
     @State private var showAddNewMemorizeItem: Bool = false
     @State private var showSettings: Bool = false
     @State private var navigationPath = NavigationPath()
@@ -135,6 +139,11 @@ struct HomeView: View {
                     .padding(.horizontal)
                     .cardAppear(delay: 0.1)
 
+                    // Weekly Goal
+                    WeeklyGoalCard()
+                        .padding(.horizontal)
+                        .cardAppear(delay: 0.12)
+
                     // Due for Review Section
                     if !allItems.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
@@ -159,6 +168,36 @@ struct HomeView: View {
                                 }
                             }
                             .padding(.horizontal)
+
+                            // "Practice Now" CTA - batches the top due verses into a back-to-back session
+                            if !dueForReviewItems.isEmpty {
+                                NavigationLink {
+                                    PracticeQueueView(items: Array(dueForReviewItems.prefix(5)))
+                                } label: {
+                                    HStack(spacing: 10) {
+                                        Image(systemName: "play.fill")
+                                            .font(.subheadline)
+                                        Text("Practice Now")
+                                            .fontWeight(.semibold)
+                                        Spacer()
+                                        Text("\(min(dueForReviewItems.count, 5)) verses • ~5 min")
+                                            .font(.caption)
+                                            .opacity(0.85)
+                                    }
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .background(
+                                        LinearGradient(
+                                            colors: [Theme.primary, Theme.primaryDark],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .cornerRadius(14)
+                                }
+                                .buttonStyle(ScaleButtonStyle())
+                                .padding(.horizontal)
+                            }
 
                             if dueForReviewItems.isEmpty {
                                 // All caught up state

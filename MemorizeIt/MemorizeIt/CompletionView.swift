@@ -11,12 +11,17 @@ struct CompletionView: View {
     let accuracy: Double
     let correctChars: Int
     let totalChars: Int
+    var verseText: String = ""
+    var newlyEarnedBadges: [Badge] = []
     let onTryAgain: () -> Void
     let onDone: () -> Void
+    /// When non-nil, replaces "Done" with "Next Verse" to chain queued sessions.
+    var onNextVerse: (() -> Void)? = nil
 
     @State private var showConfetti = false
     @State private var scale: CGFloat = 0.5
     @State private var opacity: Double = 0
+    @State private var shareImage: ShareableImage?
 
     var completionMessage: String {
         if accuracy == 100 {
@@ -134,30 +139,119 @@ struct CompletionView: View {
                 }
                 .padding(.vertical, 8)
 
+                // Newly earned badges (if any)
+                if !newlyEarnedBadges.isEmpty {
+                    Divider()
+                        .padding(.horizontal)
+
+                    VStack(spacing: 8) {
+                        Text(newlyEarnedBadges.count == 1 ? "Badge Earned!" : "\(newlyEarnedBadges.count) Badges Earned!")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary)
+
+                        HStack(spacing: 16) {
+                            ForEach(newlyEarnedBadges) { badge in
+                                VStack(spacing: 4) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(badge.color.opacity(0.18))
+                                            .frame(width: 48, height: 48)
+                                        Image(systemName: badge.icon)
+                                            .font(.system(size: 22))
+                                            .foregroundColor(badge.color)
+                                    }
+                                    Text(badge.title)
+                                        .font(.caption2)
+                                        .fontWeight(.medium)
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Divider()
                     .padding(.horizontal)
 
-                // Buttons
+                // Buttons - primary action depends on whether we're in a queue
                 VStack(spacing: 12) {
-                    Button(action: onTryAgain) {
-                        HStack {
-                            Image(systemName: "arrow.clockwise")
-                            Text("Try Again")
-                                .fontWeight(.semibold)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Theme.primary)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                    }
-
-                    Button(action: onDone) {
-                        Text("Done")
-                            .fontWeight(.medium)
+                    if let onNextVerse {
+                        // Queue mode: emphasize Next Verse
+                        Button(action: onNextVerse) {
+                            HStack {
+                                Text("Next Verse")
+                                    .fontWeight(.semibold)
+                                Image(systemName: "arrow.right")
+                            }
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .foregroundColor(Theme.primary)
+                            .background(Theme.primary)
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                        }
+
+                        HStack(spacing: 12) {
+                            Button(action: onTryAgain) {
+                                HStack {
+                                    Image(systemName: "arrow.clockwise")
+                                    Text("Try Again")
+                                        .fontWeight(.medium)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .foregroundColor(Theme.primary)
+                                .background(Theme.primary.opacity(0.1))
+                                .cornerRadius(12)
+                            }
+
+                            Button(action: onDone) {
+                                Text("End Session")
+                                    .fontWeight(.medium)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    } else {
+                        // Single-verse mode: Try Again is primary
+                        Button(action: onTryAgain) {
+                            HStack {
+                                Image(systemName: "arrow.clockwise")
+                                Text("Try Again")
+                                    .fontWeight(.semibold)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Theme.primary)
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                        }
+
+                        HStack(spacing: 12) {
+                            // Share button (only if we have the verse to render)
+                            if !verseText.isEmpty && accuracy >= 70 {
+                                Button(action: prepareShareImage) {
+                                    HStack {
+                                        Image(systemName: "square.and.arrow.up")
+                                        Text("Share")
+                                            .fontWeight(.medium)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .foregroundColor(Theme.primary)
+                                    .background(Theme.primary.opacity(0.1))
+                                    .cornerRadius(12)
+                                }
+                            }
+
+                            Button(action: onDone) {
+                                Text("Done")
+                                    .fontWeight(.medium)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .foregroundColor(Theme.primary)
+                            }
+                        }
                     }
                 }
                 .padding(.horizontal)
@@ -196,7 +290,92 @@ struct CompletionView: View {
             // Request review after great sessions
             ReviewManager.shared.recordGreatSession(accuracy: accuracy)
         }
+        .sheet(item: $shareImage) { item in
+            ShareSheet(items: [item.image, item.caption])
+        }
     }
+
+    @MainActor
+    private func prepareShareImage() {
+        let card = ShareCard(verseText: verseText, accuracy: accuracy)
+        let renderer = ImageRenderer(content: card)
+        renderer.scale = 3
+        if let ui = renderer.uiImage {
+            shareImage = ShareableImage(
+                image: ui,
+                caption: "I just memorized this with MemorizeIt — \(Int(accuracy))% accuracy!"
+            )
+        }
+        HapticManager.shared.impact(style: .medium)
+    }
+}
+
+// MARK: - Share Components
+
+/// Wraps the rendered image so SwiftUI's `sheet(item:)` can present it.
+struct ShareableImage: Identifiable {
+    let id = UUID()
+    let image: UIImage
+    let caption: String
+}
+
+/// The actual card that gets snapshotted to share. Designed to look good on
+/// Instagram Stories / Messages.
+struct ShareCard: View {
+    let verseText: String
+    let accuracy: Double
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            HStack {
+                Image(systemName: "brain.head.profile")
+                    .foregroundColor(.white)
+                Text("MemorizeIt")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                Spacer()
+                Text(String(format: "%.0f%%", accuracy))
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            }
+
+            Spacer()
+
+            Text("\u{201C}" + verseText + "\u{201D}")
+                .font(.title3)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+                .multilineTextAlignment(.leading)
+                .lineLimit(8)
+
+            Spacer()
+
+            Text("Memorized with MemorizeIt")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.8))
+        }
+        .padding(32)
+        .frame(width: 360, height: 480)
+        .background(
+            LinearGradient(
+                colors: [Theme.primary, Theme.primaryDark],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+    }
+}
+
+/// UIKit bridge for sharing arbitrary items via UIActivityViewController.
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 struct ConfettiView: View {

@@ -20,6 +20,7 @@ struct AddNewItemView: View {
     @StateObject private var bibleAPI = BibleAPIService()
     @StateObject private var apiBibleService = APIBibleService()
     @StateObject private var purchaseManager = PurchaseManager.shared
+    @StateObject private var categoryStore = CategoryStore.shared
 
     @Query private var allItems: [MemorizeItemModel]
 
@@ -31,8 +32,32 @@ struct AddNewItemView: View {
     @State private var selectedCategory: String = "Bible Verses"
     @State private var memorizeText: String = ""
     @State private var showPaywall: Bool = false
+    @State private var softUpsellDismissed: Bool = false
+    @State private var showNewCategorySheet: Bool = false
+    @State private var newCategoryName: String = ""
+    @State private var newCategoryError: String?
 
-    let categories = ["Bible Verses", "Poems", "Speeches"]
+    var categories: [String] { categoryStore.allCategories }
+
+    /// Show a one-per-day soft "Loving it?" upsell once the user has added
+    /// at least `softUpsellTriggerCount` verses but is still below the hard cap.
+    private var shouldShowSoftUpsell: Bool {
+        guard !purchaseManager.isPremium else { return false }
+        guard !softUpsellDismissed else { return false }
+        let count = allItems.count
+        guard count >= PurchaseManager.softUpsellTriggerCount, count < PurchaseManager.freeVerseLimit else { return false }
+
+        let key = "softUpsellLastShown"
+        if let last = UserDefaults.standard.object(forKey: key) as? Date,
+           Calendar.current.isDateInToday(last) {
+            return false
+        }
+        return true
+    }
+
+    private func recordSoftUpsellShown() {
+        UserDefaults.standard.set(Date(), forKey: "softUpsellLastShown")
+    }
 
     private var canAddMoreVerses: Bool {
         purchaseManager.canAddMoreVerses(currentCount: allItems.count)
@@ -54,6 +79,56 @@ struct AddNewItemView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
+                    // Soft upsell prompt (shown once per day when free user has
+                    // added ≥ softUpsellTriggerCount verses but is below the cap)
+                    if shouldShowSoftUpsell {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(Theme.primary.opacity(0.15))
+                                    .frame(width: 40, height: 40)
+                                Image(systemName: "sparkles")
+                                    .foregroundColor(Theme.primary)
+                            }
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Loving MemorizeIt?")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                Text("Try Premium free — unlock unlimited verses and every mode.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+
+                            Spacer()
+
+                            Button("Try Free") {
+                                showPaywall = true
+                            }
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Theme.primary)
+                            .cornerRadius(8)
+
+                            Button {
+                                softUpsellDismissed = true
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding()
+                        .background(Theme.primary.opacity(0.08))
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        .onAppear { recordSoftUpsellShown() }
+                    }
+
                     // Limit Banner (for free users)
                     if !purchaseManager.isPremium {
                         HStack(spacing: 12) {
@@ -328,6 +403,16 @@ struct AddNewItemView: View {
                                                 .tag(category)
                                             }
                                         }
+
+                                        Divider()
+
+                                        Button {
+                                            newCategoryName = ""
+                                            newCategoryError = nil
+                                            showNewCategorySheet = true
+                                        } label: {
+                                            Label("New Category…", systemImage: "plus")
+                                        }
                                     } label: {
                                         HStack {
                                             Image(systemName: Theme.categoryIcon(for: selectedCategory))
@@ -436,9 +521,54 @@ struct AddNewItemView: View {
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
             }
+            .sheet(isPresented: $showNewCategorySheet) {
+                newCategorySheet
+            }
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
+    }
+
+    private var newCategorySheet: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Category name", text: $newCategoryName)
+                        .textInputAutocapitalization(.words)
+                        .autocorrectionDisabled()
+                } footer: {
+                    if let error = newCategoryError {
+                        Text(error)
+                            .foregroundColor(.red)
+                    } else {
+                        Text("Categories help you organize your verses, poems, speeches, and more.")
+                    }
+                }
+            }
+            .navigationTitle("New Category")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        showNewCategorySheet = false
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create") {
+                        let trimmed = newCategoryName.trimmingCharacters(in: .whitespacesAndNewlines)
+                        if let error = categoryStore.add(trimmed) {
+                            newCategoryError = error
+                        } else {
+                            selectedCategory = trimmed
+                            showNewCategorySheet = false
+                            HapticManager.shared.notification(type: .success)
+                        }
+                    }
+                    .disabled(newCategoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 
     private func saveItemIfAllowed(translation: String? = nil) {

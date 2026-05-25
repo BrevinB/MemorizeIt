@@ -34,6 +34,11 @@
 		23IPAD0052EDD000000000003 /* iPadDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23IPAD0042EDD000000000003 /* iPadDashboardView.swift */; };
 		23IPAD0072EDD000000000004 /* FavoritesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23IPAD0062EDD000000000004 /* FavoritesView.swift */; };
 		23REV00012EDF000000000001 /* ReviewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23REV00002EDF000000000001 /* ReviewManager.swift */; };
+		23BAD00012EDF000000000001 /* BadgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23BAD00002EDF000000000001 /* BadgeManager.swift */; };
+		23CAT00012EDF000000000001 /* CategoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23CAT00002EDF000000000001 /* CategoryStore.swift */; };
+		23PQV00012EDF000000000001 /* PracticeQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23PQV00002EDF000000000001 /* PracticeQueueView.swift */; };
+		23AUD00012EDF000000000001 /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23AUD00002EDF000000000001 /* AudioManager.swift */; };
+		23VPV00012EDF000000000001 /* VoicePracticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23VPV00002EDF000000000001 /* VoicePracticeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,6 +69,11 @@
 		23IPAD0042EDD000000000003 /* iPadDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPadDashboardView.swift; sourceTree = "<group>"; };
 		23IPAD0062EDD000000000004 /* FavoritesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesView.swift; sourceTree = "<group>"; };
 		23REV00002EDF000000000001 /* ReviewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewManager.swift; sourceTree = "<group>"; };
+		23BAD00002EDF000000000001 /* BadgeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeManager.swift; sourceTree = "<group>"; };
+		23CAT00002EDF000000000001 /* CategoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryStore.swift; sourceTree = "<group>"; };
+		23PQV00002EDF000000000001 /* PracticeQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeQueueView.swift; sourceTree = "<group>"; };
+		23AUD00002EDF000000000001 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
+		23VPV00002EDF000000000001 /* VoicePracticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicePracticeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +114,11 @@
 				23IPAD0062EDD000000000004 /* FavoritesView.swift */,
 				23CC00042ED6000000000003 /* PurchaseManager.swift */,
 				23REV00002EDF000000000001 /* ReviewManager.swift */,
+				23BAD00002EDF000000000001 /* BadgeManager.swift */,
+				23CAT00002EDF000000000001 /* CategoryStore.swift */,
+				23PQV00002EDF000000000001 /* PracticeQueueView.swift */,
+				23AUD00002EDF000000000001 /* AudioManager.swift */,
+				23VPV00002EDF000000000001 /* VoicePracticeView.swift */,
 				23CC00062ED6000000000004 /* PaywallView.swift */,
 				23CC00022ED6000000000002 /* NotificationManager.swift */,
 				23CC00002ED6000000000001 /* OnboardingView.swift */,
@@ -215,6 +230,11 @@
 				23IPAD0072EDD000000000004 /* FavoritesView.swift in Sources */,
 				23CC00052ED6000000000003 /* PurchaseManager.swift in Sources */,
 				23REV00012EDF000000000001 /* ReviewManager.swift in Sources */,
+				23BAD00012EDF000000000001 /* BadgeManager.swift in Sources */,
+				23CAT00012EDF000000000001 /* CategoryStore.swift in Sources */,
+				23PQV00012EDF000000000001 /* PracticeQueueView.swift in Sources */,
+				23AUD00012EDF000000000001 /* AudioManager.swift in Sources */,
+				23VPV00012EDF000000000001 /* VoicePracticeView.swift in Sources */,
 				23CC00072ED6000000000004 /* PaywallView.swift in Sources */,
 				23CC00032ED6000000000002 /* NotificationManager.swift in Sources */,
 				23CC00012ED6000000000001 /* OnboardingView.swift in Sources */,
@@ -370,6 +390,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = MemorizeIt;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MemorizeIt uses your microphone for Voice mode so you can recite verses out loud as a practice method.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "MemorizeIt uses speech recognition to score how accurately you recite the verses you're memorizing.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -380,7 +402,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.20;
+				MARKETING_VERSION = 1.30;
 				PRODUCT_BUNDLE_IDENTIFIER = co.brevinb.MemorizeIt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -402,6 +424,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = MemorizeIt;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MemorizeIt uses your microphone for Voice mode so you can recite verses out loud as a practice method.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "MemorizeIt uses speech recognition to score how accurately you recite the verses you're memorizing.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -412,7 +436,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.20;
+				MARKETING_VERSION = 1.30;
 				PRODUCT_BUNDLE_IDENTIFIER = co.brevinb.MemorizeIt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

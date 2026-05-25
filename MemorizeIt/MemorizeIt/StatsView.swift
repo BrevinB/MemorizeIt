@@ -121,6 +121,14 @@ struct StatsView: View {
                     }
                     .padding(.horizontal)
 
+                    // Achievement Badges (visible to all users)
+                    BadgeStripView()
+                        .cardAppear(delay: 0.45)
+
+                    // Practice heatmap (visible to all users)
+                    PracticeHeatmapView(sessions: recentSessions)
+                        .cardAppear(delay: 0.48)
+
                     // Premium Stats Section
                     if purchaseManager.isPremium {
                         // Premium stats grid
@@ -164,7 +172,8 @@ struct StatsView: View {
                             }
                         }
                     } else {
-                        // Premium upsell for detailed stats
+                        // Blurred premium stats teaser - shows the ACTUAL data
+                        // through a blur so free users can see what they'd unlock.
                         VStack(spacing: 16) {
                             HStack {
                                 Text("Detailed Statistics")
@@ -178,13 +187,46 @@ struct StatsView: View {
                             }
                             .padding(.horizontal)
 
-                            VStack(spacing: 12) {
-                                LockedStatRow(icon: "clock.fill", title: "Time Spent", color: .blue)
-                                LockedStatRow(icon: "percent", title: "Average Accuracy", color: .green)
-                                LockedStatRow(icon: "list.bullet.clipboard", title: "Recent Activity", color: .purple)
-                                LockedStatRow(icon: "chart.xyaxis.line", title: "Progress Charts", color: .orange)
+                            ZStack {
+                                // Actual stats, blurred out
+                                VStack(spacing: 12) {
+                                    LazyVGrid(columns: statsGridColumns, spacing: 16) {
+                                        StatCard(
+                                            icon: "clock.fill",
+                                            title: "Time Spent",
+                                            value: formatTime(stats.totalTimeSpent),
+                                            color: .blue
+                                        )
+
+                                        StatCard(
+                                            icon: "percent",
+                                            title: "Avg Accuracy",
+                                            value: String(format: "%.0f%%", averageAccuracy),
+                                            color: averageAccuracy >= 90 ? .green : averageAccuracy >= 70 ? .orange : .red
+                                        )
+                                    }
+
+                                    ForEach(Array(recentSessions.prefix(3).enumerated()), id: \.element.id) { _, session in
+                                        SessionRow(session: session)
+                                    }
+                                }
+                                .padding(.horizontal)
+                                .blur(radius: 6)
+                                .allowsHitTesting(false)
+
+                                // Lock + CTA overlay
+                                VStack(spacing: 12) {
+                                    Image(systemName: "lock.fill")
+                                        .font(.title)
+                                        .foregroundColor(.white)
+                                        .padding(16)
+                                        .background(Circle().fill(Theme.primary))
+
+                                    Text("Unlock with Premium")
+                                        .font(.headline)
+                                        .foregroundColor(.primary)
+                                }
                             }
-                            .padding(.horizontal)
 
                             Button {
                                 showPaywall = true
@@ -358,6 +400,116 @@ struct SessionRow: View {
         let minutes = Int(seconds) / 60
         let secs = Int(seconds) % 60
         return "\(minutes):\(String(format: "%02d", secs))"
+    }
+}
+
+// MARK: - Practice Heatmap (GitHub-style)
+
+/// Calendar grid showing per-day practice intensity over the last several months.
+/// Cells are colored darker as session count increases. Empty days are pale gray.
+struct PracticeHeatmapView: View {
+    let sessions: [PracticeSession]
+
+    /// Number of past weeks rendered. ~18 keeps the grid readable on iPhone.
+    private let weekCount = 18
+
+    /// Pre-compute sessions per day so cell rendering stays O(1).
+    private var sessionsByDay: [Date: Int] {
+        var dict: [Date: Int] = [:]
+        let cal = Calendar.current
+        for s in sessions {
+            let day = cal.startOfDay(for: s.date)
+            dict[day, default: 0] += 1
+        }
+        return dict
+    }
+
+    /// 2-D matrix of dates: outer = week, inner = 7 days starting Sunday.
+    private var weeks: [[Date]] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        // Find Sunday of the current week (locale-dependent first weekday).
+        let comps = cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: today)
+        guard let thisWeekStart = cal.date(from: comps),
+              let firstWeekStart = cal.date(byAdding: .weekOfYear, value: -(weekCount - 1), to: thisWeekStart)
+        else { return [] }
+
+        return (0..<weekCount).map { w in
+            let weekStart = cal.date(byAdding: .weekOfYear, value: w, to: firstWeekStart) ?? firstWeekStart
+            return (0..<7).map { d in
+                cal.date(byAdding: .day, value: d, to: weekStart) ?? weekStart
+            }
+        }
+    }
+
+    private func cellColor(for count: Int) -> Color {
+        switch count {
+        case 0: return Color.gray.opacity(0.15)
+        case 1: return Theme.primary.opacity(0.35)
+        case 2...3: return Theme.primary.opacity(0.65)
+        default: return Theme.primary
+        }
+    }
+
+    private var totalDays: Int {
+        sessionsByDay.keys.count
+    }
+
+    var body: some View {
+        let today = Calendar.current.startOfDay(for: Date())
+
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Practice History")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    Text("\(totalDays) active day\(totalDays == 1 ? "" : "s")")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+            }
+            .padding(.horizontal)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .top, spacing: 3) {
+                    ForEach(weeks.indices, id: \.self) { weekIndex in
+                        VStack(spacing: 3) {
+                            ForEach(weeks[weekIndex], id: \.self) { day in
+                                let isFuture = day > today
+                                let count = isFuture ? 0 : (sessionsByDay[day] ?? 0)
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(isFuture ? Color.clear : cellColor(for: count))
+                                    .frame(width: 14, height: 14)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+
+            // Intensity legend
+            HStack(spacing: 6) {
+                Text("Less")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                ForEach([0, 1, 2, 4], id: \.self) { count in
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(cellColor(for: count))
+                        .frame(width: 10, height: 10)
+                }
+                Text("More")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                Spacer()
+            }
+            .padding(.horizontal)
+        }
+        .padding(.vertical, 12)
+        .background(Color(uiColor: .secondarySystemBackground))
+        .cornerRadius(16)
+        .padding(.horizontal)
     }
 }
 

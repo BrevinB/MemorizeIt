@@ -17,12 +17,21 @@ struct FavoritesView: View {
 
     @State private var itemToDelete: MemorizeItemModel?
     @State private var showDeleteConfirmation = false
+    @State private var searchText: String = ""
 
     private var gridColumns: [GridItem] {
         if horizontalSizeClass == .regular {
             return [GridItem(.adaptive(minimum: 300, maximum: 400), spacing: 16)]
         } else {
             return [GridItem(.flexible())]
+        }
+    }
+
+    private var filteredFavorites: [MemorizeItemModel] {
+        guard !searchText.isEmpty else { return favoriteItems }
+        return favoriteItems.filter {
+            $0.title.localizedCaseInsensitiveContains(searchText) ||
+            $0.memorizeText.localizedCaseInsensitiveContains(searchText)
         }
     }
 
@@ -34,10 +43,12 @@ struct FavoritesView: View {
                     systemImage: "star.slash",
                     description: Text("Mark items as favorites to see them here. Swipe right on any verse to add it to your favorites.")
                 )
+            } else if filteredFavorites.isEmpty {
+                ContentUnavailableView.search(text: searchText)
             } else {
                 ScrollView {
                     LazyVGrid(columns: gridColumns, spacing: 16) {
-                        ForEach(favoriteItems) { item in
+                        ForEach(filteredFavorites) { item in
                             NavigationLink(destination: MemorizeView(item: item)) {
                                 FavoriteItemCard(item: item)
                             }
@@ -64,6 +75,7 @@ struct FavoritesView: View {
         }
         .navigationTitle("Favorites")
         .navigationBarTitleDisplayMode(.large)
+        .searchable(text: $searchText, prompt: "Search favorites...")
         .confirmationDialog(
             "Delete Item",
             isPresented: $showDeleteConfirmation,

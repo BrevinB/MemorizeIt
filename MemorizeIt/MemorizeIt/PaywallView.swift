@@ -152,11 +152,10 @@ struct PaywallView: View {
     private var premiumFeatures: [(icon: String, title: String, subtitle: String)] {
         [
             ("infinity", "Unlimited Verses", "Add as many verses as you want"),
-            ("slider.horizontal.3", "All Difficulty Modes", "Hidden Words & Blank Canvas"),
+            ("mic.fill", "Voice Mode", "Recite verses out loud — practice hands-free"),
+            ("slider.horizontal.3", "All Difficulty Modes", "Hidden Words, First Letter, Fill-in-the-Blank, Blank Canvas"),
             ("book.closed.fill", "All Bible Translations", "NIV, ESV, NLT, and more"),
-            ("brain.head.profile", "Smart Scheduling", "Spaced repetition for better retention"),
-            ("chart.bar.fill", "Detailed Statistics", "Track your progress over time"),
-            ("icloud.fill", "iCloud Sync", "Coming Soon")
+            ("chart.bar.fill", "Detailed Statistics", "Time spent, accuracy trends, and activity")
         ]
     }
 
@@ -211,7 +210,7 @@ struct PaywallView: View {
                     ProgressView()
                         .tint(.white)
                 } else {
-                    Text("Subscribe Now")
+                    Text(subscribeButtonTitle)
                         .fontWeight(.semibold)
                 }
             }
@@ -229,6 +228,16 @@ struct PaywallView: View {
         }
         .disabled(selectedPackage == nil || purchaseManager.isLoading)
         .opacity(selectedPackage == nil ? 0.6 : 1)
+    }
+
+    /// Whether the currently-selected package offers an introductory free trial.
+    private var selectedPackageHasFreeTrial: Bool {
+        guard let intro = selectedPackage?.storeProduct.introductoryDiscount else { return false }
+        return intro.paymentMode == .freeTrial
+    }
+
+    private var subscribeButtonTitle: String {
+        selectedPackageHasFreeTrial ? "Start Free Trial" : "Subscribe Now"
     }
 
     // MARK: - Footer Section
@@ -249,7 +258,9 @@ struct PaywallView: View {
             .disabled(purchaseManager.isLoading)
 
             VStack(spacing: 8) {
-                Text("Cancel anytime. Subscription auto-renews until cancelled.")
+                Text(selectedPackageHasFreeTrial
+                     ? "Free trial, then auto-renews until cancelled. Cancel anytime."
+                     : "Cancel anytime. Subscription auto-renews until cancelled.")
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -283,7 +294,16 @@ struct PricingCard: View {
                             .font(.headline)
                             .foregroundColor(.primary)
 
-                        if isBestValue {
+                        if let trial = freeTrialText {
+                            Text(trial)
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(Color.blue)
+                                .cornerRadius(4)
+                        } else if isBestValue {
                             Text("BEST VALUE")
                                 .font(.caption2)
                                 .fontWeight(.bold)
@@ -322,6 +342,23 @@ struct PricingCard: View {
             )
         }
         .buttonStyle(.plain)
+    }
+
+    /// Returns a "7-day free trial" style badge string when the package has a
+    /// free-trial introductory offer configured in App Store Connect.
+    private var freeTrialText: String? {
+        guard let intro = package.storeProduct.introductoryDiscount,
+              intro.paymentMode == .freeTrial else { return nil }
+
+        let value = intro.subscriptionPeriod.value
+        let unitName: String
+        switch intro.subscriptionPeriod.unit {
+        case .day: unitName = "day"
+        case .week: unitName = "week"
+        case .month: unitName = "month"
+        case .year: unitName = "year"
+        }
+        return "\(value)-\(unitName) free trial".uppercased()
     }
 
     private var packageTitle: String {

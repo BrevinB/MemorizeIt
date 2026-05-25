@@ -3,12 +3,14 @@ import SwiftData
 import AVFoundation
 import AudioToolbox
 
-enum DifficultyMode: String, CaseIterable {
+enum DifficultyMode: String, CaseIterable, Identifiable {
     case fullText = "Full Text"
     case hiddenWords = "Hidden Words"
     case firstLetter = "First Letter"
     case fillInTheBlank = "Fill in the Blank"
     case blankCanvas = "Blank Canvas"
+
+    var id: String { rawValue }
 
     var description: String {
         switch self {
@@ -29,6 +31,7 @@ enum DifficultyMode: String, CaseIterable {
 enum TypingMode: String, CaseIterable {
     case character = "Character"
     case word = "Word"
+    case voice = "Voice"
 
     var description: String {
         switch self {
@@ -36,7 +39,14 @@ enum TypingMode: String, CaseIterable {
             return "Type character by character"
         case .word:
             return "Type word by word"
+        case .voice:
+            return "Recite the verse out loud"
         }
+    }
+
+    /// Voice mode is a premium feature.
+    var requiresPremium: Bool {
+        self == .voice
     }
 }
 
@@ -71,6 +81,12 @@ struct MemorizeView: View {
     @StateObject private var purchaseManager = PurchaseManager.shared
 
     let item: MemorizeItemModel
+    /// Optional Practice-Now queue context: (current index, total) – when set,
+    /// MemorizeView shows a queue badge and CompletionView shows "Next Verse".
+    var queueProgress: (current: Int, total: Int)? = nil
+    /// Called when the user finishes a queued verse and wants to advance.
+    var queueAdvance: (() -> Void)? = nil
+
     @State private var typedText: String = ""
     @State private var selectedMode: DifficultyMode = .fullText
     @State private var typingMode: TypingMode = .character
@@ -78,6 +94,7 @@ struct MemorizeView: View {
     @State private var showPaywall: Bool = false
     @State private var showSettings: Bool = false
     @State private var settings: TypingSettings = TypingSettings.load()
+    @State private var previewLockedMode: DifficultyMode?
 
     /// Difficulty modes available based on subscription status
     private var availableModes: [DifficultyMode] {
@@ -108,8 +125,9 @@ struct MemorizeView: View {
                 typingMode: typingMode,
                 settings: settings,
                 onComplete: { accuracy, correctChars, totalChars in
-                    savePracticeSession(accuracy: accuracy, correctChars: correctChars, totalChars: totalChars)
-                }
+                    return savePracticeSession(accuracy: accuracy, correctChars: correctChars, totalChars: totalChars)
+                },
+                onNextVerse: queueAdvance
             )
         }
     }
@@ -241,8 +259,9 @@ struct MemorizeView: View {
                 typingMode: typingMode,
                 settings: settings,
                 onComplete: { accuracy, correctChars, totalChars in
-                    savePracticeSession(accuracy: accuracy, correctChars: correctChars, totalChars: totalChars)
-                }
+                    return savePracticeSession(accuracy: accuracy, correctChars: correctChars, totalChars: totalChars)
+                },
+                onNextVerse: queueAdvance
             )
             .frame(maxWidth: .infinity)
         }
@@ -260,8 +279,24 @@ struct MemorizeView: View {
         }
         .navigationTitle(item.title)
         .toolbar {
+            if let progress = queueProgress {
+                ToolbarItem(placement: .principal) {
+                    Text("\(progress.current) of \(progress.total)")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule().fill(Theme.primary)
+                        )
+                }
+            }
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 12) {
+                    // Listen button - reads the verse aloud (free for all users)
+                    ListenButton(text: item.memorizeText)
+
                     // Settings button
                     Button {
                         showSettings = true
@@ -279,14 +314,15 @@ struct MemorizeView: View {
                                 }
                             }
 
-                            // Locked modes (show as disabled with lock icon)
+                            // Locked modes - tapping shows a live preview of
+                            // what that mode looks like before paywall.
                             if !purchaseManager.isPremium {
                                 ForEach(
                                     DifficultyMode.allCases.filter { $0 != .fullText },
                                     id: \.self
                                 ) { mode in
                                     Button {
-                                        showPaywall = true
+                                        previewLockedMode = mode
                                     } label: {
                                         Label(mode.rawValue, systemImage: "lock.fill")
                                     }
@@ -295,9 +331,25 @@ struct MemorizeView: View {
                         }
 
                         Section("Typing Mode") {
-                            Picker("Typing Mode", selection: $typingMode) {
-                                ForEach(TypingMode.allCases, id: \.self) { mode in
-                                    Text(mode.rawValue).tag(mode)
+                            ForEach(TypingMode.allCases, id: \.self) { mode in
+                                Button {
+                                    if mode.requiresPremium && !purchaseManager.isPremium {
+                                        showPaywall = true
+                                    } else {
+                                        typingMode = mode
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(mode.rawValue)
+                                        if mode == typingMode {
+                                            Image(systemName: "checkmark")
+                                        }
+                                        Spacer()
+                                        if mode.requiresPremium && !purchaseManager.isPremium {
+                                            Image(systemName: "lock.fill")
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -323,6 +375,16 @@ struct MemorizeView: View {
         .sheet(isPresented: $showSettings) {
             TypingSettingsView(settings: $settings)
         }
+        .sheet(item: $previewLockedMode) { mode in
+            DifficultyModePreviewSheet(
+                mode: mode,
+                verseText: item.memorizeText,
+                onUnlock: {
+                    previewLockedMode = nil
+                    showPaywall = true
+                }
+            )
+        }
         .onChange(of: selectedMode) { oldValue, newValue in
             typedText = ""
             startTime = Date()
@@ -336,7 +398,8 @@ struct MemorizeView: View {
         }
     }
 
-    private func savePracticeSession(accuracy: Double, correctChars: Int, totalChars: Int) {
+    @discardableResult
+    private func savePracticeSession(accuracy: Double, correctChars: Int, totalChars: Int) -> [Badge] {
         let timeSpent = Date().timeIntervalSince(startTime)
 
         let session = PracticeSession(
@@ -360,14 +423,28 @@ struct MemorizeView: View {
         stats.totalPracticeSessions += 1
         stats.totalTimeSpent += timeSpent
 
+        // Bump weekly progress (resets automatically on ISO week rollover)
+        WeeklyGoalStore.shared.recordSession()
+
         // Check for streak milestone (for review prompt)
         ReviewManager.shared.checkStreakMilestone(currentStreak: stats.currentStreak)
+
+        // Evaluate achievement badges. Returned list = newly earned this session.
+        let verseCount = (try? modelContext.fetchCount(FetchDescriptor<MemorizeItemModel>())) ?? 0
+        let newBadges = BadgeManager.shared.evaluate(
+            currentStreak: stats.currentStreak,
+            totalSessions: stats.totalPracticeSessions,
+            verseCount: verseCount,
+            latestAccuracy: accuracy
+        )
 
         do {
             try modelContext.save()
         } catch {
             print("Error saving practice session: \(error)")
         }
+
+        return newBadges
     }
 }
 
@@ -457,10 +534,16 @@ struct TypingView: View {
     var difficultyMode: DifficultyMode
     var typingMode: TypingMode
     var settings: TypingSettings
-    var onComplete: (Double, Int, Int) -> Void
+    /// Called when the user finishes a session. Caller persists the session and
+    /// returns any badges newly earned, which CompletionView surfaces.
+    var onComplete: (Double, Int, Int) -> [Badge]
+    /// Optional - when set, CompletionView shows a "Next Verse" button that
+    /// invokes this callback. Used by PracticeQueueView to chain sessions.
+    var onNextVerse: (() -> Void)? = nil
 
     @State private var showCompletionAlert = false
     @State private var finalAccuracy: Double = 0
+    @State private var newlyEarnedBadges: [Badge] = []
     @State private var showHint = false
     @State private var hintText = ""
     @State private var lastErrorIndex: Int? = nil
@@ -576,7 +659,18 @@ struct TypingView: View {
 
     // MARK: - Body
 
+    @ViewBuilder
     var body: some View {
+        if typingMode == .voice {
+            // Voice mode owns its own UI - the typing-centric chrome
+            // (stats header, hint bar, keyboard area, action bar) doesn't apply.
+            VoicePracticeView(memorizationText: memorizationText, onComplete: onComplete)
+        } else {
+            typingBody
+        }
+    }
+
+    private var typingBody: some View {
         VStack(spacing: 0) {
             // Stats header
             statsHeader
@@ -606,12 +700,17 @@ struct TypingView: View {
                     accuracy: finalAccuracy,
                     correctChars: correctChars,
                     totalChars: totalChars,
+                    verseText: memorizationText,
+                    newlyEarnedBadges: newlyEarnedBadges,
                     onTryAgain: {
                         resetTyping()
                         showCompletionAlert = false
                     },
                     onDone: {
                         showCompletionAlert = false
+                    },
+                    onNextVerse: onNextVerse.map { advance in
+                        { showCompletionAlert = false; advance() }
                     }
                 )
                 .transition(.opacity)
@@ -995,8 +1094,8 @@ struct TypingView: View {
         if completedWords.count >= words.count {
             finalAccuracy = accuracy
             isTextFieldFocused = false // Dismiss keyboard
+            newlyEarnedBadges = onComplete(accuracy, correctChars, totalChars)
             showCompletionAlert = true
-            onComplete(accuracy, correctChars, totalChars)
             if settings.audioFeedback { audioManager.playComplete() }
             if settings.hapticFeedback { HapticManager.shared.notification(type: .success) }
         }
@@ -1121,8 +1220,8 @@ struct TypingView: View {
         if normalizedNew.count >= target.count && !showCompletionAlert {
             finalAccuracy = accuracy
             isTextFieldFocused = false // Dismiss keyboard
+            newlyEarnedBadges = onComplete(accuracy, correctChars, target.count)
             showCompletionAlert = true
-            onComplete(accuracy, correctChars, target.count)
             if settings.audioFeedback { audioManager.playComplete() }
             if settings.hapticFeedback { HapticManager.shared.notification(type: .success) }
         }
@@ -1380,6 +1479,202 @@ struct FlowLayout: Layout {
 extension String {
     subscript(offset: Int) -> Character {
         self[index(startIndex, offsetBy: offset)]
+    }
+}
+
+// MARK: - Locked Mode Preview Sheet
+
+/// Shows free users a non-interactive preview of how a locked difficulty mode
+/// renders their actual verse, before pushing them to the paywall.
+struct DifficultyModePreviewSheet: View {
+    let mode: DifficultyMode
+    let verseText: String
+    let onUnlock: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    /// Limit preview to the first ~120 chars so the sheet stays compact.
+    private var sampleText: String {
+        let trimmed = verseText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.count <= 120 { return trimmed }
+        let end = trimmed.index(trimmed.startIndex, offsetBy: 120)
+        return String(trimmed[..<end]) + "…"
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                // Header
+                VStack(spacing: 8) {
+                    ZStack {
+                        Circle()
+                            .fill(Theme.primary.opacity(0.15))
+                            .frame(width: 64, height: 64)
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.title2)
+                            .foregroundColor(Theme.primary)
+                    }
+
+                    Text(mode.rawValue)
+                        .font(.title2)
+                        .fontWeight(.bold)
+
+                    Text(mode.description)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, 24)
+
+                // Live preview of the verse rendered in this mode
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Preview")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.leading, 4)
+
+                    Self.renderPreview(for: sampleText, mode: mode)
+                        .font(.system(size: 18))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(Color(uiColor: .secondarySystemBackground))
+                        .cornerRadius(12)
+                }
+                .padding(.horizontal)
+
+                Spacer()
+
+                // CTA
+                VStack(spacing: 12) {
+                    Button(action: onUnlock) {
+                        HStack {
+                            Image(systemName: "crown.fill")
+                            Text("Unlock All Modes")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(
+                            LinearGradient(
+                                colors: [Theme.primary, Theme.primaryDark],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .foregroundColor(.white)
+                        .cornerRadius(14)
+                    }
+
+                    Button("Maybe Later") {
+                        dismiss()
+                    }
+                    .foregroundColor(.secondary)
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 24)
+            }
+            .navigationTitle("Mode Preview")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    /// Render the verse as it would appear in the given mode (non-interactive).
+    /// Mirrors the visibility rules in TypingView.buildColoredText().
+    static func renderPreview(for target: String, mode: DifficultyMode) -> Text {
+        var result = Text("")
+        // Build a quick keyword mask for fill-in-the-blank.
+        let punctuationCharacters = CharacterSet.punctuationCharacters
+
+        func isKeyWord(_ word: String) -> Bool {
+            let clean = word.unicodeScalars
+                .filter { !punctuationCharacters.contains($0) }
+                .map { String($0) }
+                .joined()
+            return clean.count > 4
+        }
+
+        func isWordStart(_ index: Int) -> Bool {
+            if index == 0 { return true }
+            let prev = target[target.index(target.startIndex, offsetBy: index - 1)]
+            return prev == " " || prev == "\n"
+        }
+
+        // Precompute keyword mask
+        var keyMask = Array(repeating: false, count: target.count)
+        if mode == .fillInTheBlank {
+            var start: Int? = nil
+            for (i, ch) in target.enumerated() {
+                if ch == " " || ch == "\n" {
+                    if let s = start {
+                        let word = String(target[
+                            target.index(target.startIndex, offsetBy: s)
+                            ..< target.index(target.startIndex, offsetBy: i)
+                        ])
+                        if isKeyWord(word) { for j in s..<i { keyMask[j] = true } }
+                        start = nil
+                    }
+                } else if start == nil {
+                    start = i
+                }
+            }
+            if let s = start {
+                let word = String(target[target.index(target.startIndex, offsetBy: s)...])
+                if isKeyWord(word) { for j in s..<target.count { keyMask[j] = true } }
+            }
+        }
+
+        for index in 0..<target.count {
+            let ch = target[target.index(target.startIndex, offsetBy: index)]
+
+            switch mode {
+            case .fullText:
+                result = result + Text(String(ch)).foregroundColor(.primary)
+
+            case .hiddenWords:
+                if ch == " " || ch == "\n" || isWordStart(index) {
+                    result = result + Text(String(ch)).foregroundColor(.primary)
+                } else {
+                    result = result + Text("_").foregroundColor(.secondary.opacity(0.4))
+                }
+
+            case .firstLetter:
+                if ch == " " || ch == "\n" {
+                    result = result + Text(String(ch)).foregroundColor(.secondary)
+                } else if isWordStart(index) {
+                    result = result + Text(String(ch)).foregroundColor(.primary)
+                } else {
+                    result = result + Text("·").foregroundColor(.secondary.opacity(0.2))
+                }
+
+            case .fillInTheBlank:
+                if ch == " " || ch == "\n" {
+                    result = result + Text(String(ch)).foregroundColor(.secondary)
+                } else if keyMask[index] {
+                    result = result + Text("_").foregroundColor(.secondary.opacity(0.4))
+                } else {
+                    result = result + Text(String(ch)).foregroundColor(.primary)
+                }
+
+            case .blankCanvas:
+                if ch == " " || ch == "\n" {
+                    result = result + Text(String(ch))
+                } else {
+                    result = result + Text("_").foregroundColor(.secondary.opacity(0.25))
+                }
+            }
+        }
+
+        return result
     }
 }
 

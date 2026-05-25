@@ -396,13 +396,14 @@ struct VerseCard: View {
 struct EditItemView: View {
     @Environment(\.dismiss) private var dismiss
     @Bindable var item: MemorizeItemModel
+    @StateObject private var categoryStore = CategoryStore.shared
 
     @State private var title: String = ""
     @State private var memorizeText: String = ""
     @State private var selectedCategory: String = ""
     @State private var isFavorite: Bool = false
 
-    let categories = ["Bible Verses", "Poems", "Speeches"]
+    var categories: [String] { categoryStore.allCategories }
 
     var body: some View {
         NavigationStack {

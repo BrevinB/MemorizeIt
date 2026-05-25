@@ -8,24 +8,39 @@
 import SwiftUI
 import SwiftData
 
-/// Navigation item for the iPad sidebar
-enum SidebarItem: String, CaseIterable, Identifiable {
-    case dashboard = "Dashboard"
-    case bibleVerses = "Bible Verses"
-    case poems = "Poems"
-    case speeches = "Speeches"
-    case favorites = "Favorites"
-    case statistics = "Statistics"
-    case settings = "Settings"
+/// Navigation item for the iPad sidebar. Categories are dynamic (driven by
+/// CategoryStore) so we use an associated value rather than a CaseIterable enum.
+enum SidebarItem: Hashable, Identifiable {
+    case dashboard
+    case category(String)
+    case favorites
+    case statistics
+    case settings
 
-    var id: String { rawValue }
+    var id: String {
+        switch self {
+        case .dashboard: return "dashboard"
+        case .category(let name): return "category:\(name)"
+        case .favorites: return "favorites"
+        case .statistics: return "statistics"
+        case .settings: return "settings"
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .dashboard: return "Dashboard"
+        case .category(let name): return name
+        case .favorites: return "Favorites"
+        case .statistics: return "Statistics"
+        case .settings: return "Settings"
+        }
+    }
 
     var icon: String {
         switch self {
         case .dashboard: return "house.fill"
-        case .bibleVerses: return "book.closed.fill"
-        case .poems: return "text.quote"
-        case .speeches: return "mic.fill"
+        case .category(let name): return Theme.categoryIcon(for: name)
         case .favorites: return "star.fill"
         case .statistics: return "chart.bar.fill"
         case .settings: return "gearshape.fill"
@@ -35,9 +50,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     var color: Color {
         switch self {
         case .dashboard: return Theme.primary
-        case .bibleVerses: return Theme.bibleVerse
-        case .poems: return Theme.poem
-        case .speeches: return Theme.speech
+        case .category(let name): return Theme.categoryColor(for: name)
         case .favorites: return .yellow
         case .statistics: return .purple
         case .settings: return .gray
@@ -94,17 +107,9 @@ struct RootNavigationView: View {
                         MemorizeView(item: item)
                     }
             }
-        case .bibleVerses:
+        case .category(let name):
             NavigationStack {
-                CategoryView(selectedCategory: "Bible Verses")
-            }
-        case .poems:
-            NavigationStack {
-                CategoryView(selectedCategory: "Poems")
-            }
-        case .speeches:
-            NavigationStack {
-                CategoryView(selectedCategory: "Speeches")
+                CategoryView(selectedCategory: name)
             }
         case .favorites:
             NavigationStack {

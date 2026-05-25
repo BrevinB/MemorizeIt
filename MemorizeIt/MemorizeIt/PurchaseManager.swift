@@ -224,22 +224,14 @@ extension PurchaseManager {
         case unlimitedVerses
         case allDifficultyModes
         case allTranslations
-        case spacedRepetition
         case detailedStats
-        case iCloudSync
-        case customCategories
-        case widgets
 
         var displayName: String {
             switch self {
             case .unlimitedVerses: return "Unlimited Verses"
             case .allDifficultyModes: return "All Difficulty Modes"
             case .allTranslations: return "All Bible Translations"
-            case .spacedRepetition: return "Smart Review Scheduling"
             case .detailedStats: return "Detailed Statistics"
-            case .iCloudSync: return "iCloud Sync"
-            case .customCategories: return "Custom Categories"
-            case .widgets: return "Home Screen Widgets"
             }
         }
 
@@ -248,11 +240,7 @@ extension PurchaseManager {
             case .unlimitedVerses: return "infinity"
             case .allDifficultyModes: return "slider.horizontal.3"
             case .allTranslations: return "book.closed.fill"
-            case .spacedRepetition: return "brain.head.profile"
             case .detailedStats: return "chart.bar.fill"
-            case .iCloudSync: return "icloud.fill"
-            case .customCategories: return "folder.badge.plus"
-            case .widgets: return "square.grid.2x2"
             }
         }
     }
@@ -267,7 +255,10 @@ extension PurchaseManager {
 // MARK: - Free Tier Limits
 extension PurchaseManager {
     /// Maximum verses allowed for free users
-    static let freeVerseLimit = 10
+    static let freeVerseLimit = 15
+
+    /// Verse count at which we show a one-time soft "loving it?" upsell prompt
+    static let softUpsellTriggerCount = 5
 
     /// Check if user can add more verses
     func canAddMoreVerses(currentCount: Int) -> Bool {

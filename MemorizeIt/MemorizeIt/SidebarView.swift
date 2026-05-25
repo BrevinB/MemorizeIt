@@ -13,6 +13,7 @@ struct SidebarView: View {
     @Binding var selection: SidebarItem?
     @Environment(\.modelContext) private var modelContext
     @Query private var allItems: [MemorizeItemModel]
+    @StateObject private var categoryStore = CategoryStore.shared
     @State private var showAddNewItem = false
     @State private var pendingNewItem: MemorizeItemModel?
     var onItemAdded: ((MemorizeItemModel) -> Void)?
@@ -25,15 +26,8 @@ struct SidebarView: View {
         allItems.filter { $0.isFavorite }.count
     }
 
-    private func categoryCount(for item: SidebarItem) -> Int {
-        let categoryName: String
-        switch item {
-        case .bibleVerses: categoryName = "Bible Verses"
-        case .poems: categoryName = "Poems"
-        case .speeches: categoryName = "Speeches"
-        default: return 0
-        }
-        return allItems.filter { $0.categoryName == categoryName }.count
+    private func categoryCount(named name: String) -> Int {
+        allItems.filter { $0.categoryName == name }.count
     }
 
     var body: some View {
@@ -60,7 +54,7 @@ struct SidebarView: View {
             Section("Navigation") {
                 Label {
                     HStack {
-                        Text(SidebarItem.dashboard.rawValue)
+                        Text(SidebarItem.dashboard.displayName)
                         Spacer()
                         if dueCount > 0 {
                             Text("\(dueCount)")
@@ -80,14 +74,15 @@ struct SidebarView: View {
                 .tag(SidebarItem.dashboard)
             }
 
-            // Categories
+            // Categories (built-in + user-created)
             Section("Categories") {
-                ForEach([SidebarItem.bibleVerses, .poems, .speeches], id: \.self) { item in
+                ForEach(categoryStore.allCategories, id: \.self) { name in
+                    let item: SidebarItem = .category(name)
                     Label {
                         HStack {
-                            Text(item.rawValue)
+                            Text(name)
                             Spacer()
-                            Text("\(categoryCount(for: item))")
+                            Text("\(categoryCount(named: name))")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -103,7 +98,7 @@ struct SidebarView: View {
             Section("Collections") {
                 Label {
                     HStack {
-                        Text(SidebarItem.favorites.rawValue)
+                        Text(SidebarItem.favorites.displayName)
                         Spacer()
                         if favoritesCount > 0 {
                             Text("\(favoritesCount)")
@@ -120,10 +115,10 @@ struct SidebarView: View {
 
             // App
             Section("App") {
-                Label(SidebarItem.statistics.rawValue, systemImage: SidebarItem.statistics.icon)
+                Label(SidebarItem.statistics.displayName, systemImage: SidebarItem.statistics.icon)
                     .tag(SidebarItem.statistics)
 
-                Label(SidebarItem.settings.rawValue, systemImage: SidebarItem.settings.icon)
+                Label(SidebarItem.settings.displayName, systemImage: SidebarItem.settings.icon)
                     .tag(SidebarItem.settings)
             }
         }
