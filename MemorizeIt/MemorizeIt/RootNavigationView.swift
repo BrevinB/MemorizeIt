@@ -71,8 +71,8 @@ struct RootNavigationView: View {
             // iPad: NavigationSplitView with sidebar
             iPadNavigationView
         } else {
-            // iPhone: Original HomeView with NavigationStack
-            HomeView()
+            // iPhone: Tab bar with Home, Library, Stats, and Settings
+            MainTabView()
         }
     }
 
@@ -116,13 +116,11 @@ struct RootNavigationView: View {
                 FavoritesView()
             }
         case .statistics:
-            NavigationStack {
-                StatsView()
-            }
+            // StatsView provides its own NavigationStack
+            StatsView()
         case .settings:
-            NavigationStack {
-                SettingsView()
-            }
+            // SettingsView provides its own NavigationStack
+            SettingsView()
         case .none:
             ContentUnavailableView(
                 "Select an Item",

@@ -19,7 +19,9 @@ struct SidebarView: View {
     var onItemAdded: ((MemorizeItemModel) -> Void)?
 
     private var dueCount: Int {
-        allItems.filter { $0.isDueForReview }.count
+        // Matches the iPhone tab badge: never-practiced items count as "new",
+        // not "due"
+        allItems.filter { $0.isDueForPractice }.count
     }
 
     private var favoritesCount: Int {

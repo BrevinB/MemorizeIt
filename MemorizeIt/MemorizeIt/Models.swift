@@ -58,6 +58,13 @@ final class MemorizeItemModel {
         return reviewDate <= Date()
     }
 
+    /// Due for a practice session: practiced at least once and the scheduled
+    /// review date has arrived. Never-practiced items are surfaced as "new"
+    /// rather than "due" (isDueForReview alone also returns true for them).
+    var isDueForPractice: Bool {
+        practiceCount > 0 && isDueForReview
+    }
+
     /// Returns days until next review (negative if overdue)
     var daysUntilReview: Int {
         guard let reviewDate = nextReviewDate else { return 0 }

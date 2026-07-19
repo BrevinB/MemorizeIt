@@ -99,7 +99,8 @@ struct CategoryView: View {
                         HStack(spacing: 10) {
                             ForEach(ProgressFilter.allCases, id: \.self) { filter in
                                 FilterChip(
-                                    filter: filter,
+                                    title: filter.rawValue,
+                                    icon: filter.icon,
                                     count: filterCounts[filter] ?? 0,
                                     isSelected: selectedFilter == filter
                                 ) {
@@ -189,12 +190,16 @@ struct CategoryView: View {
                                     .listRowSeparator(.hidden)
                                     .listRowBackground(Color.clear)
                                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                        Button(role: .destructive) {
+                                        // No destructive role: the delete is confirmed via
+                                        // alert, and a destructive-role button would animate
+                                        // the row away even when the user cancels
+                                        Button {
                                             itemToDelete = item
                                             showDeleteConfirmation = true
                                         } label: {
                                             Label("Delete", systemImage: "trash")
                                         }
+                                        .tint(.red)
 
                                         Button {
                                             itemToEdit = item
@@ -264,19 +269,22 @@ struct CategoryView: View {
     }
 }
 
+/// Generic filter chip shared by CategoryView and LibraryView
 struct FilterChip: View {
-    let filter: ProgressFilter
+    let title: String
+    let icon: String
     let count: Int
     let isSelected: Bool
+    var selectedColor: Color = Theme.primary
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
-                Image(systemName: filter.icon)
+                Image(systemName: icon)
                     .font(.system(size: 12, weight: .medium))
 
-                Text(filter.rawValue)
+                Text(title)
                     .font(.subheadline)
                     .fontWeight(.medium)
 
@@ -296,7 +304,7 @@ struct FilterChip: View {
             .padding(.vertical, 8)
             .background(
                 isSelected
-                    ? Theme.primary
+                    ? selectedColor
                     : Color(uiColor: .secondarySystemBackground)
             )
             .foregroundColor(isSelected ? .white : .primary)

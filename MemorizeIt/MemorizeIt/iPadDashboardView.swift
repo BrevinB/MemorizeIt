@@ -33,7 +33,7 @@ struct iPadDashboardView: View {
     }
 
     var dueForReviewItems: [MemorizeItemModel] {
-        allItems.filter { $0.isDueForReview && $0.practiceCount > 0 }
+        allItems.filter { $0.isDueForPractice }
             .sorted { $0.daysUntilReview < $1.daysUntilReview }
     }
 

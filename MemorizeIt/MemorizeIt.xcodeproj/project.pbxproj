@@ -39,6 +39,8 @@
 		23PQV00012EDF000000000001 /* PracticeQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23PQV00002EDF000000000001 /* PracticeQueueView.swift */; };
 		23AUD00012EDF000000000001 /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23AUD00002EDF000000000001 /* AudioManager.swift */; };
 		23VPV00012EDF000000000001 /* VoicePracticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23VPV00002EDF000000000001 /* VoicePracticeView.swift */; };
+		23TAB00012EDF000000000001 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23TAB00002EDF000000000001 /* MainTabView.swift */; };
+		23LIB00012EDF000000000001 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23LIB00002EDF000000000001 /* LibraryView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -74,6 +76,8 @@
 		23PQV00002EDF000000000001 /* PracticeQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeQueueView.swift; sourceTree = "<group>"; };
 		23AUD00002EDF000000000001 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
 		23VPV00002EDF000000000001 /* VoicePracticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicePracticeView.swift; sourceTree = "<group>"; };
+		23TAB00002EDF000000000001 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		23LIB00002EDF000000000001 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +113,8 @@
 			children = (
 				23FCD4872EDB76D30090A140 /* memorize.icon */,
 				23IPAD0002EDD000000000001 /* RootNavigationView.swift */,
+				23TAB00002EDF000000000001 /* MainTabView.swift */,
+				23LIB00002EDF000000000001 /* LibraryView.swift */,
 				23IPAD0022EDD000000000002 /* SidebarView.swift */,
 				23IPAD0042EDD000000000003 /* iPadDashboardView.swift */,
 				23IPAD0062EDD000000000004 /* FavoritesView.swift */,
@@ -235,6 +241,8 @@
 				23PQV00012EDF000000000001 /* PracticeQueueView.swift in Sources */,
 				23AUD00012EDF000000000001 /* AudioManager.swift in Sources */,
 				23VPV00012EDF000000000001 /* VoicePracticeView.swift in Sources */,
+				23TAB00012EDF000000000001 /* MainTabView.swift in Sources */,
+				23LIB00012EDF000000000001 /* LibraryView.swift in Sources */,
 				23CC00072ED6000000000004 /* PaywallView.swift in Sources */,
 				23CC00032ED6000000000002 /* NotificationManager.swift in Sources */,
 				23CC00012ED6000000000001 /* OnboardingView.swift in Sources */,
