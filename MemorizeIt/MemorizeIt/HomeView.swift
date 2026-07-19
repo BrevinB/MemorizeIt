@@ -8,29 +8,18 @@
 import SwiftUI
 import SwiftData
 
-struct Category: Identifiable {
-    var id = UUID()
-    let title: String
-}
-
 struct HomeView: View {
+    /// Called when the user taps a quick-stat card; the tab bar uses this to
+    /// switch to the Stats tab instead of pushing a nested screen.
+    var openStats: (() -> Void)? = nil
+
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \MemorizeItemModel.createdAt, order: .reverse) private var allItems: [MemorizeItemModel]
     @Query private var appStats: [AppStats]
-    @StateObject private var categoryStore = CategoryStore.shared
-
-    private var Categories: [Category] {
-        categoryStore.allCategories.map { Category(title: $0) }
-    }
 
     @State private var showAddNewMemorizeItem: Bool = false
-    @State private var showSettings: Bool = false
     @State private var navigationPath = NavigationPath()
     @State private var itemToNavigate: MemorizeItemModel?
-
-    var favoriteItems: [MemorizeItemModel] {
-        allItems.filter { $0.isFavorite }
-    }
 
     /// Newly added items that haven't been practiced yet, newest first
     var newlyAddedItems: [MemorizeItemModel] {
@@ -46,7 +35,7 @@ struct HomeView: View {
 
     /// Items due for review based on spaced repetition algorithm (excludes never-practiced items)
     var dueForReviewItems: [MemorizeItemModel] {
-        allItems.filter { $0.isDueForReview && $0.practiceCount > 0 }
+        allItems.filter { $0.isDueForPractice }
             .sorted { item1, item2 in
                 // Sort by most overdue first, then by last practiced
                 let days1 = item1.daysUntilReview
@@ -67,76 +56,50 @@ struct HomeView: View {
             return newStats
         }
     }
-    
+
+    private var greeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5..<12: return "Good Morning"
+        case 12..<17: return "Good Afternoon"
+        default: return "Good Evening"
+        }
+    }
+
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Header
-                    VStack(spacing: 8) {
-                        Image(systemName: "brain.head.profile")
-                            .font(.system(size: 50))
-                            .foregroundColor(Theme.primary)
-                        Text("MemorizeIt")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                        Text("Master the art of memorization")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.top, 20)
-
                     // Quick Stats
                     HStack(spacing: 16) {
-                        NavigationLink(destination: StatsView()) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("\(stats.currentStreak)")
-                                        .font(.title)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(Theme.primary)
-                                    Text("Day Streak")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-
-                                Spacer()
-
-                                Image(systemName: "flame.fill")
-                                    .font(.title2)
-                                    .foregroundColor(.orange)
-                            }
-                            .padding()
-                            .background(Color(uiColor: .secondarySystemBackground))
-                            .cornerRadius(12)
+                        Button(action: {
+                            HapticManager.shared.impact(style: .light)
+                            openStats?()
+                        }) {
+                            QuickStatCard(
+                                value: "\(stats.currentStreak)",
+                                label: "Day Streak",
+                                icon: "flame.fill",
+                                iconColor: .orange
+                            )
                         }
                         .buttonStyle(ScaleButtonStyle())
 
-                        NavigationLink(destination: StatsView()) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("\(allItems.count)")
-                                        .font(.title)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(Theme.primary)
-                                    Text("Total Verses")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-
-                                Spacer()
-
-                                Image(systemName: "chart.bar.fill")
-                                    .font(.title2)
-                                    .foregroundColor(Theme.primary)
-                            }
-                            .padding()
-                            .background(Color(uiColor: .secondarySystemBackground))
-                            .cornerRadius(12)
+                        Button(action: {
+                            HapticManager.shared.impact(style: .light)
+                            openStats?()
+                        }) {
+                            QuickStatCard(
+                                value: "\(allItems.count)",
+                                label: "Verses",
+                                icon: "book.closed.fill",
+                                iconColor: Theme.primary
+                            )
                         }
                         .buttonStyle(ScaleButtonStyle())
                     }
                     .padding(.horizontal)
+                    .padding(.top, 8)
                     .cardAppear(delay: 0.1)
 
                     // Weekly Goal
@@ -274,25 +237,6 @@ struct HomeView: View {
                         }
                     }
 
-                    // Categories Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Categories")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .padding(.horizontal)
-
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                            ForEach(Array(Categories.enumerated()), id: \.element.id) { index, category in
-                                NavigationLink(destination: CategoryView(selectedCategory: category.title)) {
-                                    CategoryCard(category: category)
-                                }
-                                .buttonStyle(ScaleButtonStyle())
-                                .cardAppear(delay: Double(index) * 0.1)
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-
                     // Show overall empty state if no verses at all
                     if allItems.isEmpty {
                         VStack(spacing: 20) {
@@ -339,33 +283,6 @@ struct HomeView: View {
                         .padding(.vertical, 40)
                         .cardAppear(delay: 0.3)
                     } else {
-                        // Favorites Section - only show if there are favorites
-                        if !favoriteItems.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack {
-                                    Image(systemName: "star.fill")
-                                        .foregroundColor(.yellow)
-                                    Text("Favorites")
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                }
-                                .padding(.horizontal)
-
-                                VStack(spacing: 12) {
-                                    ForEach(Array(favoriteItems.enumerated()), id: \.element.id) { index, item in
-                                        NavigationLink(destination: MemorizeView(
-                                            item: item
-                                        )) {
-                                            MemorizeItemModelRow(item: item)
-                                        }
-                                        .buttonStyle(ScaleButtonStyle())
-                                        .cardAppear(delay: 0.3 + Double(index) * 0.1)
-                                    }
-                                }
-                                .padding(.horizontal)
-                            }
-                        }
-
                         // Recent Section - only show if there are recent items
                         if !recentItems.isEmpty {
                             VStack(alignment: .leading, spacing: 12) {
@@ -391,13 +308,13 @@ struct HomeView: View {
                             }
                         }
 
-                        // Show a compact hint if there are verses but no favorites/recents
-                        if favoriteItems.isEmpty && recentItems.isEmpty {
+                        // Show a compact hint if there are verses but nothing practiced yet
+                        if recentItems.isEmpty {
                             VStack(spacing: 12) {
                                 Text("💡 Tip")
                                     .font(.headline)
 
-                                Text("Start practicing to see your progress here, or mark verses as favorites for quick access!")
+                                Text("Start practicing to see your progress here. Browse everything you've added in the Library tab.")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                     .multilineTextAlignment(.center)
@@ -411,20 +328,9 @@ struct HomeView: View {
                     Spacer(minLength: 20)
                 }
             }
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(greeting)
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        HapticManager.shared.impact(style: .light)
-                        showSettings.toggle()
-                    }) {
-                        Image(systemName: "gearshape.fill")
-                            .font(.title3)
-                            .foregroundColor(Theme.primary)
-                    }
-                    .buttonStyle(BounceButtonStyle())
-                }
-
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
                         HapticManager.shared.impact(style: .light)
@@ -450,40 +356,39 @@ struct HomeView: View {
                     itemToNavigate = newItem
                 })
             }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
-            }
         }
     }
 }
 
 // MARK: - Card Components
 
-struct CategoryCard: View {
-    let category: Category
+struct QuickStatCard: View {
+    let value: String
+    let label: String
+    let icon: String
+    let iconColor: Color
 
     var body: some View {
-        VStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(Theme.categoryColor(for: category.title).opacity(0.2))
-                    .frame(width: 60, height: 60)
-
-                Image(systemName: Theme.categoryIcon(for: category.title))
-                    .font(.system(size: 28))
-                    .foregroundColor(Theme.categoryColor(for: category.title))
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(value)
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(Theme.primary)
+                Text(label)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
 
-            Text(category.title)
-                .font(.headline)
-                .multilineTextAlignment(.center)
-                .foregroundColor(.primary)
+            Spacer()
+
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(iconColor)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
+        .padding()
         .background(Color(uiColor: .secondarySystemBackground))
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .cornerRadius(12)
     }
 }
 

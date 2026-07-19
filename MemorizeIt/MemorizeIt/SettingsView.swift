@@ -9,7 +9,6 @@ import SwiftUI
 import SwiftData
 
 struct SettingsView: View {
-    @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query private var allItems: [MemorizeItemModel]
     @Query private var appStats: [AppStats]
@@ -427,15 +426,6 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .fontWeight(.semibold)
-                    .foregroundColor(Theme.primary)
-                }
-            }
             .confirmationDialog(
                 "Delete All Verses",
                 isPresented: $showDeleteConfirmation,
